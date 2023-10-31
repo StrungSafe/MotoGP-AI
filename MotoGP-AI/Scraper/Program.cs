@@ -14,28 +14,71 @@ namespace Scraper
 
         private async Task TryMotoGp()
         {
-            using (var client = new HttpClient()) 
+            using (var client = new HttpClient())
             {
-                client.BaseAddress = new Uri("https://api.motogp.pulselive.com/", UriKind.Absolute);
+                client.ConfigureMotoGp();
 
-                var seasons = await client.GetFromJsonAsync<Season[]>(new Uri("motogp/v1/results/seasons", UriKind.Relative));
-                
-                // TODO Ensure seasons exist
+                var allSeasons = await client.GetFromJson<Season[]>("seasons");
+                // scrapping after season end and before start of new year will "miss" that season
+                var seasons = allSeasons.Where(s => s.Year < DateTime.Now.Year).Where(s => s.Year >= 2020);
 
-                var events = await client.GetFromJsonAsync<Event[]>(new Uri($"motogp/v1/results/events?seasonUuid={seasons[0].Id}&isFinished={true}", UriKind.Relative));
+                if(seasons.Any())
+                {
+                    foreach (var season in seasons)
+                    {
+                        var allEvents = await client.GetFromJsonAsync<Event[]>($"events?seasonUuid={season.Id}&isFinished={true}");
+                        // TODO Ensure events exist
 
-                // TODO Ensure events exist
+                        var events = allEvents.Where(e => !e.Test);
 
-                var categories = await client.GetFromJsonAsync<Category[]>(new Uri($"motogp/v1/results/categories?eventUuid={events[0].Id}", UriKind.Relative));
+                        season.Events.AddRange(events);
 
-                // TODO Find motogp id
+                        foreach (var _event in season.Events)
+                        {
+                            var categories = await client.GetFromJson<Category[]>($"categories?eventUuid={_event.Id}");
+                            // TODO Ensure categories exist
 
-                var sessions = await client.GetFromJsonAsync<Session[]>(new Uri($"motogp/v1/results/sessions?eventUuid={events[0].Id}&categoryUuid={categories[0].Id}", UriKind.Relative));
+                            var category = categories.FirstOrDefault(c => c.Name.StartsWith("motogp", StringComparison.CurrentCultureIgnoreCase));
 
-                // TODO Find Qualy and Race sessions
+                            if(category == default)
+                            {
+                                Console.WriteLine("The motogp category was not found...skipping this event");
+                                continue;
+                            }
 
-                var classifications = await client.GetFromJsonAsync<SessionClassification>(new Uri($"motogp/v1/results/session/{sessions[0].Id}/classification?test=false", UriKind.Relative));
+                            var allSessions = await client.GetFromJson<Session[]>($"sessions?eventUuid={_event.Id}&categoryUuid={category.Id}");
+
+                            var sessions = allSessions.Where(s => s.IsInterestingSession);
+
+                            _event.Sessions.AddRange(sessions);
+
+                            foreach(var session in _event.Sessions)
+                            {
+                                var sessionClassification = await client.GetFromJson<SessionClassification>($"session/{session.Id}/classification?test=false");
+
+                                session.SessionClassification = sessionClassification;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("No seasons were returned from the API...unable to continue");
+                }
             }
+        }
+    }
+
+    public static class HttpClientExtensions 
+    {
+        public static void ConfigureMotoGp(this HttpClient client)
+        {
+            client.BaseAddress = new Uri("https://api.motogp.pulselive.com/motogp/v1/results/", UriKind.Absolute);
+        }
+
+        public static Task<T> GetFromJson<T>(this HttpClient client, string relativeUrl)
+        {
+            return client.GetFromJsonAsync<T>(new Uri(relativeUrl, UriKind.Relative));
         }
     }
 }
