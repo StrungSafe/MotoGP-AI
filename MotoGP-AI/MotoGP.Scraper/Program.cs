@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace Scraper
+namespace MotoGP.Scraper
 {
     public class Program
     {

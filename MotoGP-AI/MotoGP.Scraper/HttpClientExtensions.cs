@@ -1,6 +1,6 @@
 ﻿using System.Net.Http.Json;
 
-namespace Scraper
+namespace MotoGP.Scraper
 {
     public static class HttpClientExtensions
     {

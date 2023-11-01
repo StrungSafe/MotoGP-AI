@@ -1,4 +1,4 @@
-﻿namespace Scraper
+﻿namespace MotoGP.Scraper
 {
     public class Season
     {

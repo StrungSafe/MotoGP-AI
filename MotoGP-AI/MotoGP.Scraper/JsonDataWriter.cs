@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace Scraper;
+namespace MotoGP.Scraper;
 
 public class JsonDataWriter : IDataWriter
 {
