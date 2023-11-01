@@ -4,9 +4,17 @@ namespace MotoGP.Scraper
 {
     public static class HttpClientExtensions
     {
-        public static Task<T> GetFromJson<T>(this HttpClient client, string relativeUrl)
+        public static async Task<T> GetFromJson<T>(this HttpClient client, string relativeUrl)
         {
-            return client.GetFromJsonAsync<T>(new Uri(relativeUrl, UriKind.Relative));
+            try
+            {
+                return await client.GetFromJsonAsync<T>(new Uri(relativeUrl, UriKind.Relative));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Silentily eating an exception...{ex.Message}");
+                return default;
+            }
         }
     }
 }

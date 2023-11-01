@@ -42,7 +42,11 @@ namespace MotoGP.Scraper
 
                 foreach (Event _event in season.Events)
                 {
-                    Category[] categories = await client.GetFromJson<Category[]>($"categories?eventUuid={_event.Id}");
+                    Category[] allCategories = await client.GetFromJson<Category[]>($"categories?eventUuid={_event.Id}");
+
+                    var categories = allCategories;
+
+                    _event.Categories.AddRange(categories);
 
                     foreach (Category category in categories)
                     {
