@@ -13,7 +13,7 @@ namespace MotoGP.Trainer
             IHost host = builder.Build();
 
             var reader = host.Services.GetRequiredService<IDataReader>();
-            var trainer = host.Services.GetRequiredService<ITrainer>();
+            var trainer = host.Services.GetRequiredService<IMlTrainer>();
 
             Season[] trainingData = await reader.ReadTrainingData();
             object model = await trainer.TrainModel(trainingData);

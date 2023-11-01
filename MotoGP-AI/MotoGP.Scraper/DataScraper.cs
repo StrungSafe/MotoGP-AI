@@ -5,15 +5,15 @@ using MotoGP.Interfaces;
 
 namespace MotoGP.Scraper
 {
-    public class MotoGpScraper : IScraper
+    public class DataScraper : IDataScraper
     {
         private readonly IHttpClientFactory clientFactory;
 
         private readonly IConfiguration configuration;
 
-        private readonly ILogger<MotoGpScraper> logger;
+        private readonly ILogger<DataScraper> logger;
 
-        public MotoGpScraper(ILogger<MotoGpScraper> logger, IHttpClientFactory clientFactory,
+        public DataScraper(ILogger<DataScraper> logger, IHttpClientFactory clientFactory,
             IConfiguration configuration)
         {
             this.logger = logger;

@@ -2,7 +2,7 @@
 
 namespace MotoGP.Scraper
 {
-    public interface IScraper
+    public interface IDataScraper
     {
         Task<IEnumerable<Season>> Scrape();
     }
