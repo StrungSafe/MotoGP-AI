@@ -1,4 +1,6 @@
-﻿namespace MotoGP.Scraper
+﻿using MotoGP.Interfaces;
+
+namespace MotoGP.Scraper
 {
     public interface IScraper
     {

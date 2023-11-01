@@ -1,4 +1,4 @@
-﻿namespace MotoGP.Scraper
+﻿namespace MotoGP.Interfaces
 {
     public class Season
     {
