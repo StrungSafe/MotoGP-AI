@@ -6,7 +6,7 @@
 
         public string Name { get; set; }
 
-        public List<Session> Sessions { get; } = new List<Session>();
+        public List<Category> Categories { get; set; } = new List<Category>();
 
         public bool Test { get; set; }
     }

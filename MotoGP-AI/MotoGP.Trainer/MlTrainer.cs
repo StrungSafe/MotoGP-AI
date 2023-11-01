@@ -18,9 +18,10 @@ public class MlTrainer : IMlTrainer
 
     private string GetRaceWinner(Event _event)
     {
-        Session race = _event.Sessions.First(s => s.Type == "RAC");
-        Classification winner = race.SessionClassification.Classifications.First(c => c.Position == 1);
-        return winner.Rider.FullName;
+        //Session race = _event.Sessions.First(s => s.Type == "RAC");
+        //Classification winner = race.SessionClassification.Classifications.First(c => c.Position == 1);
+        //return winner.Rider.FullName;
+        return null;
     }
 
     private object[] Prep(Season[] seasons)
@@ -30,7 +31,8 @@ public class MlTrainer : IMlTrainer
             return season.Events.Select(_event =>
             {
                 string raceWinner = GetRaceWinner(_event);
-                Session session = _event.Sessions.First(s => s.Type == "RAC");
+                //Session session = _event.Sessions.First(s => s.Type == "RAC");
+                Session session = default;
 
                 return new
                 {

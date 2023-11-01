@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using MotoGP.Interfaces;
 
 namespace MotoGP.Analyzer
@@ -25,25 +24,6 @@ namespace MotoGP.Analyzer
             Console.WriteLine("Finished w/ no errors...");
             Console.WriteLine("Press <enter> to close");
             Console.ReadLine();
-        }
-    }
-
-    public interface IDataAnalyzer
-    {
-        Task AnalyzeData(Season[] seasons);
-    }
-
-    public class DataAnalyzer : IDataAnalyzer
-    {
-        private readonly ILogger<DataAnalyzer> logger;
-
-        public DataAnalyzer(ILogger<DataAnalyzer> logger)
-        {
-            this.logger = logger;
-        }
-
-        public async Task AnalyzeData(Season[] seasons)
-        {
         }
     }
 }

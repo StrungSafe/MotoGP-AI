@@ -44,33 +44,24 @@ namespace MotoGP.Scraper
                 {
                     Category[] categories = await client.GetFromJson<Category[]>($"categories?eventUuid={_event.Id}");
 
-                    Category? category = categories.FirstOrDefault(c =>
-                        c.Name.StartsWith("motogp", StringComparison.CurrentCultureIgnoreCase));
-
-                    if (category == default)
+                    foreach (Category category in categories)
                     {
-                        logger.LogWarning("The motogp category was not found...skipping the event {eventName}",
-                            _event.Name);
-                        continue;
-                    }
+                        Session[] allSessions =
+                            await client.GetFromJson<Session[]>(
+                                $"sessions?eventUuid={_event.Id}&categoryUuid={category.Id}");
+                    
+                        IEnumerable<Session> sessions = allSessions;
 
-                    Session[] allSessions =
-                        await client.GetFromJson<Session[]>(
-                            $"sessions?eventUuid={_event.Id}&categoryUuid={category.Id}");
+                        category.Sessions.AddRange(sessions);
 
-                    string[] captureSessions = { "Q", "RAC", "RACE" };
-                    IEnumerable<Session> sessions = allSessions.Where(s =>
-                        captureSessions.Any(t => string.Equals(t, s.Type, StringComparison.CurrentCultureIgnoreCase)));
+                        foreach (Session session in category.Sessions)
+                        {
+                            var sessionClassification =
+                                await client.GetFromJson<SessionClassification>(
+                                    $"session/{session.Id}/classification?test=false");
 
-                    _event.Sessions.AddRange(sessions);
-
-                    foreach (Session session in _event.Sessions)
-                    {
-                        var sessionClassification =
-                            await client.GetFromJson<SessionClassification>(
-                                $"session/{session.Id}/classification?test=false");
-
-                        session.SessionClassification = sessionClassification;
+                            session.SessionClassification = sessionClassification;
+                        }
                     }
                 }
             }));

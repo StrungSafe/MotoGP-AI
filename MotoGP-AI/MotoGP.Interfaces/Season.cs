@@ -4,7 +4,7 @@
     {
         public bool Current { get; set; }
 
-        public List<Event> Events { get; } = new List<Event>();
+        public List<Event> Events { get; set; } = new List<Event>();
 
         public Guid Id { get; set; }
 
