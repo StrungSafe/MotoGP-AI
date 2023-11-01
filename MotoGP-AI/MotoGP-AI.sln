@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MotoGP.Scraper", "MotoGP.Sc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MotoGP.Interfaces", "MotoGP.Interfaces\MotoGP.Interfaces.csproj", "{EDFD502C-D028-4D2D-938E-E7C87BED748C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MotoGP.Trainer", "MotoGP.Trainer\MotoGP.Trainer.csproj", "{AACFF06D-0511-49A9-A22A-9339FCDB7952}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{EDFD502C-D028-4D2D-938E-E7C87BED748C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EDFD502C-D028-4D2D-938E-E7C87BED748C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EDFD502C-D028-4D2D-938E-E7C87BED748C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AACFF06D-0511-49A9-A22A-9339FCDB7952}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AACFF06D-0511-49A9-A22A-9339FCDB7952}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AACFF06D-0511-49A9-A22A-9339FCDB7952}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AACFF06D-0511-49A9-A22A-9339FCDB7952}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
