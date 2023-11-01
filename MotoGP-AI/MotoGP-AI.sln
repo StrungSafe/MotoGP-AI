@@ -3,11 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.6.33712.159
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MotoGP.Scraper", "MotoGP.Scraper\MotoGP.Scraper.csproj", "{FE516E09-A70C-4CF0-BC2B-49AA62C6B6AC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MotoGP.Scraper", "MotoGP.Scraper\MotoGP.Scraper.csproj", "{FE516E09-A70C-4CF0-BC2B-49AA62C6B6AC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MotoGP.Interfaces", "MotoGP.Interfaces\MotoGP.Interfaces.csproj", "{EDFD502C-D028-4D2D-938E-E7C87BED748C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MotoGP.Interfaces", "MotoGP.Interfaces\MotoGP.Interfaces.csproj", "{EDFD502C-D028-4D2D-938E-E7C87BED748C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MotoGP.Trainer", "MotoGP.Trainer\MotoGP.Trainer.csproj", "{AACFF06D-0511-49A9-A22A-9339FCDB7952}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MotoGP.Trainer", "MotoGP.Trainer\MotoGP.Trainer.csproj", "{AACFF06D-0511-49A9-A22A-9339FCDB7952}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MotoGP.Analyzer", "MotoGP.Analyzer\MotoGP.Analyzer.csproj", "{068C4BA7-2A86-4182-B897-D11F014AA05B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{AACFF06D-0511-49A9-A22A-9339FCDB7952}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AACFF06D-0511-49A9-A22A-9339FCDB7952}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AACFF06D-0511-49A9-A22A-9339FCDB7952}.Release|Any CPU.Build.0 = Release|Any CPU
+		{068C4BA7-2A86-4182-B897-D11F014AA05B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{068C4BA7-2A86-4182-B897-D11F014AA05B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{068C4BA7-2A86-4182-B897-D11F014AA05B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{068C4BA7-2A86-4182-B897-D11F014AA05B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

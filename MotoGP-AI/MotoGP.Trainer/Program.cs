@@ -9,8 +9,10 @@ namespace MotoGP.Trainer
         public static async Task Main(string[] args)
         {
             HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
+
             builder.Services.AddSingleton<IDataReader, DataReader>();
             builder.Services.AddSingleton<IMlTrainer, MlTrainer>();
+
             IHost host = builder.Build();
 
             var reader = host.Services.GetRequiredService<IDataReader>();

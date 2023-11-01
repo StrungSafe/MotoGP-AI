@@ -37,14 +37,19 @@ public class MlTrainer : IMlTrainer
                     Year = (float)season.Year,
                     TrackName = _event.Name,
                     session.Condition.Track,
+                    session.Condition.Weather,
                     Air = float.Parse(session.Condition.Air.Replace("\u00BA", string.Empty)),
                     Humidity = float.Parse(session.Condition.Humidity.Replace("%", string.Empty)),
                     Ground = float.Parse(session.Condition.Ground.Replace("\u00BA", string.Empty)),
-                    session.Condition.Weather,
                     RaceWinner = raceWinner
                 };
             });
         });
+
+        //qualyifying{}
+        //classifications[]
+        //rider
+        //time
 
         return events.ToArray();
     }

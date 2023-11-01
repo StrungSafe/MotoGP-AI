@@ -9,6 +9,7 @@ namespace MotoGP.Scraper
         public static async Task Main(string[] args)
         {
             HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
+
             builder.Services.AddSingleton<IDataScraper, DataScraper>();
             builder.Services.AddSingleton<IDataWriter, JsonDataWriter>();
             builder.Services.AddHttpClient(builder.Configuration["MotoGP:Name"],
@@ -16,6 +17,7 @@ namespace MotoGP.Scraper
                 {
                     client.BaseAddress = new Uri(builder.Configuration["MotoGP:BaseAddress"], UriKind.Absolute);
                 });
+
             IHost host = builder.Build();
 
             var scraper = host.Services.GetRequiredService<IDataScraper>();
