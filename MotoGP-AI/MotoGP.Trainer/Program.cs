@@ -10,6 +10,7 @@ namespace MotoGP.Trainer
         {
             HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
             builder.Services.AddSingleton<IDataReader, DataReader>();
+            builder.Services.AddSingleton<IMlTrainer, MlTrainer>();
             IHost host = builder.Build();
 
             var reader = host.Services.GetRequiredService<IDataReader>();
