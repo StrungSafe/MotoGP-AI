@@ -2,6 +2,6 @@
 {
     public interface IScraper
     {
-        Task Scrape();
+        Task<IEnumerable<Season>> Scrape();
     }
 }

@@ -7,19 +7,25 @@ namespace Scraper
     {
         public static async Task Main(string[] args)
         {
-            var builder = Host.CreateApplicationBuilder(args);
-            builder.Services.AddTransient<IScraper, MotoGPScraper>();
-            builder.Services.AddHttpClient("MotoGP", client =>
-            {
-                client.BaseAddress = new Uri("https://api.motogp.pulselive.com/motogp/v1/results/", UriKind.Absolute);
-            });
-            var host = builder.Build();
+            HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
+            builder.Services.AddSingleton<IScraper, MotoGpScraper>();
+            builder.Services.AddSingleton<IDataWriter, JsonDataWriter>();
+            builder.Services.AddHttpClient(builder.Configuration["MotoGP:Name"],
+                client =>
+                {
+                    client.BaseAddress = new Uri(builder.Configuration["MotoGP:BaseAddress"], UriKind.Absolute);
+                });
+            IHost host = builder.Build();
 
             var scraper = host.Services.GetRequiredService<IScraper>();
-            await scraper.Scrape();
+            var writer = host.Services.GetRequiredService<IDataWriter>();
 
-            Console.WriteLine("Finished");
-            Console.ReadKey();
+            IEnumerable<Season> data = await scraper.Scrape();
+            await writer.SaveData(data);
+
+            Console.WriteLine("Finished w/ no errors...");
+            Console.WriteLine("Press <enter> to close");
+            Console.ReadLine();
         }
     }
 }

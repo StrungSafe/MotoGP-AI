@@ -1,66 +1,80 @@
 ﻿using System.Net.Http.Json;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace Scraper
 {
-    public class MotoGPScraper : IScraper
+    public class MotoGpScraper : IScraper
     {
         private readonly IHttpClientFactory clientFactory;
 
-        public MotoGPScraper(IHttpClientFactory clientFactory)
+        private readonly IConfiguration configuration;
+
+        private readonly ILogger<MotoGpScraper> logger;
+
+        public MotoGpScraper(ILogger<MotoGpScraper> logger, IHttpClientFactory clientFactory,
+            IConfiguration configuration)
         {
+            this.logger = logger;
             this.clientFactory = clientFactory;
+            this.configuration = configuration;
         }
 
-        public async Task Scrape()
+        public async Task<IEnumerable<Season>> Scrape()
         {
-            using var client = clientFactory.CreateClient("MotoGP");
-            var allSeasons = await client.GetFromJson<Season[]>("seasons");
+            using HttpClient client = clientFactory.CreateClient(configuration["MotoGP:Name"]);
+            Season[] allSeasons = await client.GetFromJson<Season[]>("seasons");
             // scrapping after season end and before start of new year will "miss" that season
-            var seasons = allSeasons.Where(s => s.Year < DateTime.Now.Year).Where(s => s.Year >= 2020);
+            IEnumerable<Season> seasons = allSeasons
+                                          .Where(s => s.Year < DateTime.Now.Year)
+                                          .OrderByDescending(s => s.Year)
+                                          .Take(configuration.GetValue<int>("MaxYearsToScrape"));
 
-            if (seasons.Any())
+            await Task.WhenAll(seasons.Select(async season =>
             {
-                foreach (var season in seasons)
+                Event[]? allEvents =
+                    await client.GetFromJsonAsync<Event[]>($"events?seasonUuid={season.Id}&isFinished=true");
+
+                IEnumerable<Event> events = allEvents.Where(e => !e.Test);
+
+                season.Events.AddRange(events);
+
+                foreach (Event _event in season.Events)
                 {
-                    var allEvents = await client.GetFromJsonAsync<Event[]>($"events?seasonUuid={season.Id}&isFinished={true}");
-                    // TODO Ensure events exist
+                    Category[] categories = await client.GetFromJson<Category[]>($"categories?eventUuid={_event.Id}");
 
-                    var events = allEvents.Where(e => !e.Test);
+                    Category? category = categories.FirstOrDefault(c =>
+                        c.Name.StartsWith("motogp", StringComparison.CurrentCultureIgnoreCase));
 
-                    season.Events.AddRange(events);
-
-                    foreach (var _event in season.Events)
+                    if (category == default)
                     {
-                        var categories = await client.GetFromJson<Category[]>($"categories?eventUuid={_event.Id}");
-                        // TODO Ensure categories exist
+                        logger.LogWarning("The motogp category was not found...skipping the event {eventName}",
+                            _event.Name);
+                        continue;
+                    }
 
-                        var category = categories.FirstOrDefault(c => c.Name.StartsWith("motogp", StringComparison.CurrentCultureIgnoreCase));
+                    Session[] allSessions =
+                        await client.GetFromJson<Session[]>(
+                            $"sessions?eventUuid={_event.Id}&categoryUuid={category.Id}");
 
-                        if (category == default)
-                        {
-                            Console.WriteLine("The motogp category was not found...skipping this event");
-                            continue;
-                        }
+                    string[] captureSessions = { "Q", "RAC", "RACE" };
+                    IEnumerable<Session> sessions = allSessions.Where(s =>
+                        captureSessions.Any(t => string.Equals(t, s.Type, StringComparison.CurrentCultureIgnoreCase)));
 
-                        var allSessions = await client.GetFromJson<Session[]>($"sessions?eventUuid={_event.Id}&categoryUuid={category.Id}");
+                    _event.Sessions.AddRange(sessions);
 
-                        var sessions = allSessions.Where(s => s.IsInterestingSession);
+                    foreach (Session session in _event.Sessions)
+                    {
+                        var sessionClassification =
+                            await client.GetFromJson<SessionClassification>(
+                                $"session/{session.Id}/classification?test=false");
 
-                        _event.Sessions.AddRange(sessions);
-
-                        foreach (var session in _event.Sessions)
-                        {
-                            var sessionClassification = await client.GetFromJson<SessionClassification>($"session/{session.Id}/classification?test=false");
-
-                            session.SessionClassification = sessionClassification;
-                        }
+                        session.SessionClassification = sessionClassification;
                     }
                 }
-            }
-            else
-            {
-                Console.WriteLine("No seasons were returned from the API...unable to continue");
-            }
+            }));
+
+            return seasons;
         }
     }
 }

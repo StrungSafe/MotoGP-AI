@@ -6,6 +6,7 @@ namespace Scraper
     {
         [JsonPropertyName("classification")]
         public Classification[] Classifications { get; set; }
+
         public Record[] Records { get; set; }
     }
 }
