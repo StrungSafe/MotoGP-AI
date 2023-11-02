@@ -76,3 +76,11 @@ public class DataRepository : IDataRepository
         return await reader.Read<T>(path);
     }
 }
+
+public class MotoGPHttpClient : HttpClient
+{
+    public MotoGPHttpClient(IConfiguration configuration)
+    {
+        //BaseAddress = "";
+    }
+}
