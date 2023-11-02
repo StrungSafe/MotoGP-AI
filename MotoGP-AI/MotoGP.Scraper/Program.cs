@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using MotoGP.Interfaces;
 
 namespace MotoGP.Scraper
 {
@@ -10,21 +9,25 @@ namespace MotoGP.Scraper
         {
             HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 
-            builder.Services.AddSingleton<IDataScraper, DataScraper>();
-            builder.Services.AddSingleton<IDataWriter, JsonDataWriter>();
-            builder.Services.AddHttpClient(builder.Configuration["MotoGP:Name"],
-                client =>
-                {
-                    client.BaseAddress = new Uri(builder.Configuration["MotoGP:BaseAddress"], UriKind.Absolute);
-                });
+            builder.Services
+                   .AddSingleton<IDataScraper, DataScraper>()
+                   .AddSingleton<IDataRepository, DataRepository>()
+                   .AddSingleton<IDataLoader, DataLoader>()
+                   .AddSingleton<IDataWriter, JsonDataService>()
+                   .AddSingleton<IDataReader, JsonDataService>();
+
+            builder.Services
+                   .AddHttpClient(builder.Configuration["MotoGP:Name"],
+                       client =>
+                       {
+                           client.BaseAddress = new Uri(builder.Configuration["MotoGP:BaseAddress"], UriKind.Absolute);
+                       });
 
             IHost host = builder.Build();
 
             var scraper = host.Services.GetRequiredService<IDataScraper>();
-            var writer = host.Services.GetRequiredService<IDataWriter>();
 
-            IEnumerable<Season> data = await scraper.Scrape();
-            await writer.SaveData(data);
+            await scraper.Scrape();
 
             Console.WriteLine("Finished w/ no errors...");
             Console.WriteLine("Press <enter> to close");

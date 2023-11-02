@@ -1,6 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MotoGP.Interfaces;
+using MotoGP.Scraper;
 
 namespace MotoGP.Analyzer
 {
@@ -10,15 +12,17 @@ namespace MotoGP.Analyzer
         {
             HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 
-            builder.Services.AddSingleton<IDataAnalyzer, DataAnalyzer>();
-            builder.Services.AddSingleton<IDataReader, DataReader>();
+            builder.Services
+                   .AddSingleton<IDataAnalyzer, DataAnalyzer>()
+                   .AddSingleton<IDataReader, JsonDataService>();
 
             IHost host = builder.Build();
 
             var reader = host.Services.GetRequiredService<IDataReader>();
             var analyzer = host.Services.GetRequiredService<IDataAnalyzer>();
+            var configuration = host.Services.GetRequiredService<IConfiguration>();
 
-            Season[] data = await reader.ReadData();
+            Season[] data = await reader.Read<Season[]>(configuration["FilePath"]);
             await analyzer.AnalyzeData(data);
 
             Console.WriteLine("Finished w/ no errors...");

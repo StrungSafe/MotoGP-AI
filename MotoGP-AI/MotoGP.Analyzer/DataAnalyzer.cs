@@ -1,4 +1,6 @@
 ﻿using System.Text;
+using System.Threading.Tasks.Dataflow;
+using System.Windows.Markup;
 using Microsoft.Extensions.Logging;
 using MotoGP.Interfaces;
 
@@ -49,12 +51,14 @@ public class DataAnalyzer : IDataAnalyzer
             }
         }
 
+        string Join(IEnumerable<string> values) => string.Join(", ", values);
+
         var builder = new StringBuilder();
-        builder.AppendLine($"Category Types: {string.Join(", ", categoryTypes.Values)}");
-        builder.AppendLine($"Session Types: {string.Join(", ", sessionTypes.Values)}");
-        builder.AppendLine($"Track Types: {string.Join(", ", trackTypes.Values)}");
-        builder.AppendLine($"Weather Types: {string.Join(", ", weatherTypes.Values)}");
-        builder.AppendLine($"Record Types: {string.Join(", ", recordTypes.Values)}");
+        builder.AppendLine($"Category Types: {Join(categoryTypes.Values)}");
+        builder.AppendLine($"Session Types: {Join(sessionTypes.Values)}");
+        builder.AppendLine($"Track Types: {Join(trackTypes.Values)}");
+        builder.AppendLine($"Weather Types: {Join(weatherTypes.Values)}");
+        builder.AppendLine($"Record Types: {Join(recordTypes.Values)}");
         logger.LogInformation(builder.ToString());
     }
 }

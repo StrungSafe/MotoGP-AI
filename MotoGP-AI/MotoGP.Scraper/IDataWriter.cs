@@ -1,8 +1,6 @@
-﻿using MotoGP.Interfaces;
-
-namespace MotoGP.Scraper;
+﻿namespace MotoGP.Scraper;
 
 public interface IDataWriter
 {
-    Task SaveData(IEnumerable<Season> seasons);
+    Task Write<T>(string filePath, T data);
 }

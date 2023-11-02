@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MotoGP.Interfaces\MotoGP.Interfaces.csproj" />
+    <ProjectReference Include="..\MotoGP.Scraper\MotoGP.Scraper.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,9 +1,6 @@
-﻿using MotoGP.Interfaces;
+﻿namespace MotoGP.Scraper;
 
-namespace MotoGP.Scraper
+public interface IDataScraper
 {
-    public interface IDataScraper
-    {
-        Task<IEnumerable<Season>> Scrape();
-    }
+    Task Scrape();
 }
