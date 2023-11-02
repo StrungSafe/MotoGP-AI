@@ -23,6 +23,7 @@ namespace MotoGP.Scraper
         public async Task<IEnumerable<Season>> Load()
         {
             Season[] allSeasons = await repo.GetSeasons();
+
             // scrapping after season end and before start of new year will "miss" that season
             IEnumerable<Season> seasons = allSeasons
                                           .Where(s => s.Year < DateTime.Now.Year)
@@ -31,25 +32,19 @@ namespace MotoGP.Scraper
 
             await Task.WhenAll(seasons.Select(async season =>
             {
-                Event[] allEvents = await repo.GetEvents(season.Id, true);
-
-                IEnumerable<Event> events = allEvents.Where(e => !e.Test);
+                Event[] events = await repo.GetEvents(season.Id, true);
 
                 season.Events.AddRange(events);
 
                 foreach (Event _event in season.Events)
                 {
-                    Category[] allCategories = await repo.GetCategories(season.Id, _event.Id);
-
-                    Category[] categories = allCategories;
+                    Category[] categories = await repo.GetCategories(season.Id, _event.Id);
 
                     _event.Categories.AddRange(categories);
 
-                    foreach (Category category in categories)
+                    foreach (Category category in _event.Categories)
                     {
-                        Session[] allSessions = await repo.GetSessions(season.Id, _event.Id, category.Id);
-
-                        IEnumerable<Session> sessions = allSessions;
+                        Session[] sessions = await repo.GetSessions(season.Id, _event.Id, category.Id);
 
                         category.Sessions.AddRange(sessions);
 

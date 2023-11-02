@@ -61,8 +61,9 @@ public class DataRepository : IDataRepository
 
     private async Task<T> GetFromJson<T>(string relativeUrl, string relativeUri)
     {
-        string path = Path.Join(configuration["RepoDirectory"], relativeUri);
-        if (!File.Exists(path))
+        string path = Path.Join(configuration["DataRepository:RepoDirectory"], relativeUri);
+        bool overwrite = configuration.GetValue<bool>("DataRepository:OverwriteData");
+        if (!File.Exists(path) || overwrite)
         {
             using HttpClient client = clientFactory.CreateClient(configuration["MotoGP:Name"]);
             var data = await client.GetFromJsonAsync<T>(new Uri(relativeUrl, UriKind.Relative));
