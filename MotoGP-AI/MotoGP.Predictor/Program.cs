@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Hosting;
+using MotoGP.Extensions;
 
 namespace MotoGP.Predictor
 {
@@ -7,6 +8,8 @@ namespace MotoGP.Predictor
         public static async Task Main(string[] args)
         {
             HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
+
+            builder.AddHelpers();
 
             IHost host = builder.Build();
 

@@ -21,5 +21,14 @@ namespace MotoGP.Extensions
                        });
             return builder;
         }
+
+        public static HostApplicationBuilder AddHelpers(this HostApplicationBuilder builder)
+        {
+            builder.Services
+                   .AddSingleton<IDataWriter, JsonDataService>()
+                   .AddSingleton<IDataReader, JsonDataService>();
+
+            return builder;
+        }
     }
 }

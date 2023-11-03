@@ -12,7 +12,7 @@ namespace MotoGP.Trainer
         {
             HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 
-            builder.AddMotoGp();
+            builder.AddHelpers();
             
             builder.Services.AddSingleton<IMlTrainer, MlTrainer>();
 
