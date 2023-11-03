@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MotoGP.Interfaces\MotoGP.Interfaces.csproj" />
+    <ProjectReference Include="..\MotoGP\MotoGP.csproj" />
   </ItemGroup>
 
   <ItemGroup>
