@@ -2,5 +2,5 @@
 
 public interface IDataWriter
 {
-    Task Write<T>(string filePath, T data);
+    Task Write<T>(string filePath, T data, CancellationToken cancellationToken = default);
 }

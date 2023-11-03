@@ -36,28 +36,28 @@ namespace MotoGP
 
                 season.Events.AddRange(events);
 
-                foreach (Event _event in season.Events)
+                await Task.WhenAll(season.Events.Select(async _event =>
                 {
                     Category[] categories = await repo.GetCategories(season.Id, _event.Id);
 
                     _event.Categories.AddRange(categories);
 
-                    foreach (Category category in _event.Categories)
+                    await Task.WhenAll(_event.Categories.Select(async category =>
                     {
                         Session[] sessions = await repo.GetSessions(season.Id, _event.Id, category.Id);
 
                         category.Sessions.AddRange(sessions);
 
-                        foreach (Session session in category.Sessions)
+                        await Task.WhenAll(category.Sessions.Select(async session =>
                         {
                             SessionClassification sessionClassification =
                                 await repo.GetSessionClassification(season.Id, _event.Id, category.Id, session.Id,
                                     false);
 
                             session.SessionClassification = sessionClassification;
-                        }
-                    }
-                }
+                        }));
+                    }));
+                }));
             }));
 
             return seasons;

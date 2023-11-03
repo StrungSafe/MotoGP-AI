@@ -14,13 +14,13 @@ namespace MotoGP.Trainer
 
             builder.AddHelpers();
             
-            builder.Services.AddSingleton<IMlTrainer, MlTrainer>();
+            builder.Services.AddSingleton<ITrainer, Trainer>();
 
             IHost host = builder.Build();
 
             var configuration = host.Services.GetRequiredService<IConfiguration>();
             var reader = host.Services.GetRequiredService<IDataReader>();
-            var trainer = host.Services.GetRequiredService<IMlTrainer>();
+            var trainer = host.Services.GetRequiredService<ITrainer>();
             var writer = host.Services.GetRequiredService<IDataWriter>();
 
             Season[] trainingData = await reader.Read<Season[]>(configuration["FilePath"]);

@@ -2,7 +2,7 @@
 
 namespace MotoGP.Trainer;
 
-public interface IMlTrainer
+public interface ITrainer
 {
     Task<object> TrainModel(Season[] data);
 }

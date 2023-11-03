@@ -1,18 +1,36 @@
 ﻿using Microsoft.ML;
 using MotoGP.Interfaces;
+using MotoGP.Extensions;
 
 namespace MotoGP.Trainer;
 
-public class MlTrainer : IMlTrainer
+public class Trainer : ITrainer
 {
-    public Task<object> TrainModel(Season[] data)
+    public Task<object> TrainModel(Season[] seasons)
     {
         var context = new MLContext();
-        context.Transforms.Text.FeaturizeText("TrackName");
-        context.Transforms.Text.FeaturizeText("Track");
-        context.Transforms.Text.FeaturizeText("Weather");
-        context.Transforms.Text.FeaturizeText("RaceWinner");
-        context.Data.LoadFromEnumerable(Prep(data));
+        //context.Transforms.Text.FeaturizeText("TrackName");
+        //context.Transforms.Text.FeaturizeText("Track");
+        //context.Transforms.Text.FeaturizeText("Weather");
+        //context.Transforms.Text.FeaturizeText("RaceWinner");
+
+        //var textEstimator = mlContext.Transforms.Text.NormalizeText("Description")
+        //                             .Append(mlContext.Transforms.Text.TokenizeIntoWords("Description"))
+        //                             .Append(mlContext.Transforms.Text.RemoveDefaultStopWords("Description"))
+        //                             .Append(mlContext.Transforms.Conversion.MapValueToKey("Description"))
+        //                             .Append(mlContext.Transforms.Text.ProduceNgrams("Description"))
+        //                             .Append(mlContext.Transforms.NormalizeLpNorm("Description"));
+
+        context.Transforms.Conversion
+               .MapValueToKey("TrackName")
+               .MapValueToKey("");
+
+        var data = Prep(seasons);
+
+        var view = context.Data.LoadFromEnumerable(data);
+
+        var split = context.Data.TrainTestSplit(view, 0.2);
+
         return null;
     }
 

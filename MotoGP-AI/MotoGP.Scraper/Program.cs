@@ -12,6 +12,8 @@ namespace MotoGP.Scraper
 
             builder.AddMotoGp();
 
+            builder.Services.AddSingleton<IDataScraper, DataScraper>();
+
             IHost host = builder.Build();
 
             var scraper = host.Services.GetRequiredService<IDataScraper>();
