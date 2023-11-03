@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MotoGP.Extensions;
 
 namespace MotoGP.Trainer
 {
@@ -8,6 +9,8 @@ namespace MotoGP.Trainer
         public static async Task Main(string[] args)
         {
             HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
+
+            builder.AddMotoGp();
 
             //builder.Services.AddSingleton<IDataReader, DataReader>();
             builder.Services.AddSingleton<IMlTrainer, MlTrainer>();

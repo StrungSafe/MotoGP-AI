@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MotoGP.Extensions;
 using MotoGP.Interfaces;
 
 namespace MotoGP.Analyzer
@@ -11,9 +12,9 @@ namespace MotoGP.Analyzer
         {
             HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 
-            builder.Services
-                   .AddSingleton<IDataAnalyzer, DataAnalyzer>()
-                   .AddSingleton<IDataReader, JsonDataService>();
+            builder.AddMotoGp();
+
+            builder.Services.AddSingleton<IDataAnalyzer, DataAnalyzer>();
 
             IHost host = builder.Build();
 
