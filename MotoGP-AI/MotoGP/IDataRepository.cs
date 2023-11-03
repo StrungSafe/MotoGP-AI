@@ -1,6 +1,6 @@
 ﻿using MotoGP.Interfaces;
 
-namespace MotoGP.Scraper;
+namespace MotoGP;
 
 public interface IDataRepository
 {

@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Logging;
 using MotoGP.Interfaces;
 
-namespace MotoGP.Scraper
+namespace MotoGP
 {
     public class DataLoader : IDataLoader
     {

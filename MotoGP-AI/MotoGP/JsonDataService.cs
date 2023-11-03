@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using Microsoft.Extensions.Logging;
 
-namespace MotoGP.Scraper;
+namespace MotoGP;
 
 public class JsonDataService : IDataReader, IDataWriter
 {
