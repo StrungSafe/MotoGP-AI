@@ -2,7 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MotoGP.Interfaces;
-using MotoGP.Scraper;
 
 namespace MotoGP.Analyzer
 {

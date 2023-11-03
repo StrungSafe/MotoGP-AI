@@ -12,7 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MotoGP.Scraper\MotoGP.Scraper.csproj" />
     <ProjectReference Include="..\MotoGP\MotoGP.csproj" />
   </ItemGroup>
 
