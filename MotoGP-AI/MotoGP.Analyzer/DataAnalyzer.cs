@@ -1,6 +1,4 @@
 ﻿using System.Text;
-using System.Threading.Tasks.Dataflow;
-using System.Windows.Markup;
 using Microsoft.Extensions.Logging;
 using MotoGP.Interfaces;
 
@@ -51,7 +49,10 @@ public class DataAnalyzer : IDataAnalyzer
             }
         }
 
-        string Join(IEnumerable<string> values) => string.Join(", ", values);
+        string Join(IEnumerable<string> values)
+        {
+            return string.Join(", ", values);
+        }
 
         var builder = new StringBuilder();
         builder.AppendLine($"Category Types: {Join(categoryTypes.Values)}");
