@@ -30,18 +30,18 @@ public class DataRepository : IDataRepository
     public Task<Category[]> GetCategories(Guid seasonId, Guid eventId)
     {
         return GetFromJson<Category[]>($"categories?eventUuid={eventId}",
-            $"{seasonId}/{eventId}/categories.json");
+            $"seasons/{seasonId}/{eventId}/categories.json");
     }
 
     public Task<Event[]> GetEvents(Guid seasonId, bool isFinished)
     {
         return GetFromJson<Event[]>($"events?seasonUuid={seasonId}&isFinished={isFinished}",
-            $"{seasonId}/events_{isFinished}.json");
+            $"seasons/{seasonId}/events_{isFinished}.json");
     }
 
     public Task<Season[]> GetSeasons()
     {
-        return GetFromJson<Season[]>("seasons", "seasons.json");
+        return GetFromJson<Season[]>("seasons", "seasons/seasons.json");
     }
 
     public Task<SessionClassification> GetSessionClassification(Guid seasonId, Guid eventId, Guid categoryId,
@@ -49,14 +49,14 @@ public class DataRepository : IDataRepository
     {
         return GetFromJson<SessionClassification>(
             $"session/{sessionId}/classification?test={test}",
-            $"{seasonId}/{eventId}/{categoryId}/{sessionId}/classifications_{test}.json");
+            $"seasons/{seasonId}/{eventId}/{categoryId}/{sessionId}/classifications_{test}.json");
     }
 
     public Task<Session[]> GetSessions(Guid seasonId, Guid eventId, Guid categoryId)
     {
         return GetFromJson<Session[]>(
             $"sessions?eventUuid={eventId}&categoryUuid={categoryId}",
-            $"{seasonId}/{eventId}/{categoryId}/sessions.json");
+            $"seasons/{seasonId}/{eventId}/{categoryId}/sessions.json");
     }
 
     private async Task<T> GetFromJson<T>(string relativeUrl, string relativeUri)
