@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using MotoGP.Extensions;
 
 namespace MotoGP.Predictor
@@ -11,7 +12,13 @@ namespace MotoGP.Predictor
 
             builder.AddHelpers();
 
+            builder.Services.AddSingleton<IPredictor, Predictor>();
+
             IHost host = builder.Build();
+
+            var predictor = host.Services.GetRequiredService<IPredictor>();
+
+            await predictor.Predict();
 
             Console.WriteLine("Finished w/ no errors...");
             Console.WriteLine("Press <enter> to close");
