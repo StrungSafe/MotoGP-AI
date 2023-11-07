@@ -5,6 +5,15 @@ namespace MotoGP.Extensions
 {
     public static class HostApplicationBuilderExtensions
     {
+        public static HostApplicationBuilder AddHelpers(this HostApplicationBuilder builder)
+        {
+            builder.Services
+                   .AddSingleton<IDataWriter, JsonDataService>()
+                   .AddSingleton<IDataReader, JsonDataService>();
+
+            return builder;
+        }
+
         public static HostApplicationBuilder AddMotoGp(this HostApplicationBuilder builder)
         {
             builder.Services
@@ -19,15 +28,6 @@ namespace MotoGP.Extensions
                        {
                            client.BaseAddress = new Uri(builder.Configuration["MotoGP:BaseAddress"], UriKind.Absolute);
                        });
-            return builder;
-        }
-
-        public static HostApplicationBuilder AddHelpers(this HostApplicationBuilder builder)
-        {
-            builder.Services
-                   .AddSingleton<IDataWriter, JsonDataService>()
-                   .AddSingleton<IDataReader, JsonDataService>();
-
             return builder;
         }
     }

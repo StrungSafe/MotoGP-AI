@@ -20,11 +20,15 @@ public class DataAnalyzer : IDataAnalyzer
         var trackTypes = new Dictionary<string, string>();
         var weatherTypes = new Dictionary<string, string>();
         var recordTypes = new Dictionary<string, string>();
+        var trackNames = new Dictionary<string, string>();
+        var racerNames = new Dictionary<string, string>();
 
         foreach (Season season in seasons)
         {
             foreach (Event _event in season.Events)
             {
+                trackNames.TryAdd(_event.Name, _event.Name);
+
                 foreach (Category category in _event.Categories)
                 {
                     categoryTypes.TryAdd(category.Name, category.Name);
@@ -38,6 +42,7 @@ public class DataAnalyzer : IDataAnalyzer
 
                         foreach (Classification classification in session.SessionClassification.Classifications)
                         {
+                            racerNames.TryAdd(classification.Rider.FullName, classification.Rider.FullName);
                         }
 
                         foreach (Record record in session.SessionClassification.Records)
@@ -49,9 +54,9 @@ public class DataAnalyzer : IDataAnalyzer
             }
         }
 
-        string Join(IEnumerable<string> values)
+        string Join(IEnumerable<string> values, string separator = ", ")
         {
-            return string.Join(", ", values);
+            return string.Join(separator, values);
         }
 
         var builder = new StringBuilder();
@@ -60,6 +65,8 @@ public class DataAnalyzer : IDataAnalyzer
         builder.AppendLine($"Track Types: {Join(trackTypes.Values)}");
         builder.AppendLine($"Weather Types: {Join(weatherTypes.Values)}");
         builder.AppendLine($"Record Types: {Join(recordTypes.Values)}");
+        builder.AppendLine($"Track Names: {Join(trackNames.Values, $", {Environment.NewLine}")}");
+        builder.AppendLine($"Riders: {Join(racerNames.Values, $", {Environment.NewLine}")}");
         logger.LogInformation(builder.ToString());
     }
 }

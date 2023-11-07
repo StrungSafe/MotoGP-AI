@@ -13,7 +13,7 @@ namespace MotoGP.Trainer
             HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 
             builder.AddHelpers();
-            
+
             builder.Services.AddSingleton<ITrainer, Trainer>();
 
             IHost host = builder.Build();

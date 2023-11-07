@@ -5,8 +5,8 @@ namespace MotoGP.Interfaces
     public class SessionClassification
     {
         [JsonPropertyName("classification")]
-        public Classification[] Classifications { get; set; }
+        public List<Classification> Classifications { get; set; }
 
-        public Record[] Records { get; set; }
+        public List<Record> Records { get; set; }
     }
 }

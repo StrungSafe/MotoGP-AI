@@ -1,76 +1,120 @@
-﻿using Microsoft.ML;
-using MotoGP.Interfaces;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms;
 using MotoGP.Extensions;
+using MotoGP.Interfaces;
 
 namespace MotoGP.Trainer;
 
 public class Trainer : ITrainer
 {
+    private readonly ILogger<Trainer> logger;
+
+    public Trainer(ILogger<Trainer> logger)
+    {
+        this.logger = logger;
+    }
+
     public Task<object> TrainModel(Season[] seasons)
     {
-        var context = new MLContext();
-        //context.Transforms.Text.FeaturizeText("TrackName");
-        //context.Transforms.Text.FeaturizeText("Track");
-        //context.Transforms.Text.FeaturizeText("Weather");
-        //context.Transforms.Text.FeaturizeText("RaceWinner");
+        logger.LogInformation("Attempting to train a model on '{seasonCount}' season(s)", seasons.Length);
 
-        //var textEstimator = mlContext.Transforms.Text.NormalizeText("Description")
-        //                             .Append(mlContext.Transforms.Text.TokenizeIntoWords("Description"))
-        //                             .Append(mlContext.Transforms.Text.RemoveDefaultStopWords("Description"))
-        //                             .Append(mlContext.Transforms.Conversion.MapValueToKey("Description"))
-        //                             .Append(mlContext.Transforms.Text.ProduceNgrams("Description"))
-        //                             .Append(mlContext.Transforms.NormalizeLpNorm("Description"));
+        var trackNames = new List<string>();
+        var riderNames = new List<string>();
+        IEnumerable<TrainingMotoGpEvent> data = PrepBeforeEvent(seasons, trackNames, riderNames);
+        logger.LogDebug("Track Names: {trackNames}", string.Join(", ", trackNames));
+        logger.LogDebug("Rider Names: {riderNames}", string.Join(", ", riderNames));
 
-        context.Transforms.Conversion
-               .MapValueToKey("TrackName")
-               .MapValueToKey("");
+        var context = new MLContext(seed: 0); // TODO
+        //context.Log += (sender, args) => logger.LogDebug(args.Message);
 
-        var data = Prep(seasons);
+        IDataView? dataView = context.Data.LoadFromEnumerable(data);
+        DataOperationsCatalog.TrainTestData view = context.Data.TrainTestSplit(dataView, 0.2);
 
-        var view = context.Data.LoadFromEnumerable(data);
+        EstimatorChain<ColumnCopyingTransformer>? conversionPipeline = context
+                                                                       .Transforms.Concatenate("Features", "Year",
+                                                                           "TrackNameEncoded")
+                                                                       .Append(context.Transforms.CopyColumns("Label",
+                                                                           "RaceWinnerEncoded"));
 
-        var split = context.Data.TrainTestSplit(view, 0.2);
+        EstimatorChain<RegressionPredictionTransformer<LinearRegressionModelParameters>>? trainingPipeline =
+            conversionPipeline
+                .Append(context.Regression.Trainers.Sdca(maximumNumberOfIterations: 100));
 
-        return null;
-    }
+        TransformerChain<RegressionPredictionTransformer<LinearRegressionModelParameters>>? model =
+            trainingPipeline.Fit(view.TrainSet);
 
-    private string GetRaceWinner(Event _event)
-    {
-        //Session race = _event.Sessions.First(s => s.Type == "RAC");
-        //Classification winner = race.SessionClassification.Classifications.First(c => c.Position == 1);
-        //return winner.Rider.FullName;
-        return null;
-    }
+        PredictionEngine<MotoGpEvent, MotoGpEventPrediction>? engine =
+            context.Model.CreatePredictionEngine<MotoGpEvent, MotoGpEventPrediction>(model);
 
-    private object[] Prep(Season[] seasons)
-    {
-        var events = seasons.SelectMany(season =>
+        var example = new MotoGpEvent
         {
-            return season.Events.Select(_event =>
-            {
-                string raceWinner = GetRaceWinner(_event);
-                //Session session = _event.Sessions.First(s => s.Type == "RAC");
-                Session session = default;
+            Year = 2023,
+            TrackNameEncoded = 5
+        };
 
-                return new
+        MotoGpEventPrediction? prediction = engine.Predict(example);
+
+        var rider = (int)Math.Round(prediction.Score, MidpointRounding.AwayFromZero);
+        Console.WriteLine($"prediction {prediction.Score} '{riderNames[rider]}'");
+
+        return Task.FromResult(model as object);
+    }
+
+    private IEnumerable<TrainingMotoGpEvent> PrepBeforeEvent(Season[] seasons, List<string> trackNames,
+        List<string> riderNames)
+    {
+        IEnumerable<TrainingMotoGpEvent> events = seasons.SelectMany(season =>
+        {
+            return season.Events.Where(_event => _event.HasMotoGpWinner()).Select(_event =>
+            {
+                string trackName = _event.Name;
+                string raceWinner = _event.GetMotoGpWinner();
+
+                if (!trackNames.Contains(trackName))
                 {
-                    Year = (float)season.Year,
-                    TrackName = _event.Name,
-                    session.Condition.Track,
-                    session.Condition.Weather,
-                    Air = float.Parse(session.Condition.Air.Replace("\u00BA", string.Empty)),
-                    Humidity = float.Parse(session.Condition.Humidity.Replace("%", string.Empty)),
-                    Ground = float.Parse(session.Condition.Ground.Replace("\u00BA", string.Empty)),
-                    RaceWinner = raceWinner
+                    trackNames.Add(trackName);
+                }
+
+                if (!riderNames.Contains(raceWinner))
+                {
+                    riderNames.Add(raceWinner);
+                }
+
+                return new TrainingMotoGpEvent
+                {
+                    Year = season.Year,
+                    TrackNameEncoded = trackNames.IndexOf(trackName),
+                    RaceWinnerEncoded = riderNames.IndexOf(raceWinner)
                 };
             });
         });
 
-        //qualyifying{}
-        //classifications[]
-        //rider
-        //time
-
         return events.ToArray();
     }
+}
+
+public class MotoGpEventPrediction
+{
+    public float Score { get; set; }
+}
+
+public class MotoGpEvent
+{
+    public float RaceWinnerEncoded { get; set; }
+
+    public float TrackNameEncoded { get; set; }
+
+    public float Year { get; set; }
+}
+
+public class TrainingMotoGpEvent
+{
+    public float RaceWinnerEncoded { get; set; }
+
+    public float TrackNameEncoded { get; set; }
+
+    public float Year { get; set; }
 }
