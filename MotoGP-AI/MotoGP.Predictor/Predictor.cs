@@ -20,7 +20,7 @@ public class Predictor : IPredictor
     {
         var context = new MLContext(seed: configuration.GetValue<int>("Seed"));
 
-        ITransformer? model = context.Model.Load(configuration["FilePath"], out DataViewSchema schema);
+        ITransformer? model = context.Model.Load(configuration["ModelPath"], out DataViewSchema schema);
 
         PredictionEngine<MotoGpEvent, MotoGpEventPrediction>? engine =
             context.Model.CreatePredictionEngine<MotoGpEvent, MotoGpEventPrediction>(model);

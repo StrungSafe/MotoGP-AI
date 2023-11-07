@@ -63,7 +63,8 @@ public class DataRepository : IDataRepository
     {
         string path = Path.Join(configuration["DataRepository:RepoDirectory"], relativeUri);
         var overwrite = configuration.GetValue<bool>("DataRepository:OverwriteData");
-        if (!File.Exists(path) || overwrite)
+
+        async Task<T> FromApi()
         {
             using HttpClient client = clientFactory.CreateClient(configuration["MotoGP:Name"]);
             var data = await client.GetFromJsonAsync<T>(new Uri(relativeUrl, UriKind.Relative));
@@ -71,9 +72,24 @@ public class DataRepository : IDataRepository
             return data;
         }
 
-        logger.LogInformation("Retrieving data from local source instead of API. Url: {relativeUrl} Uri: {relativeUri}",
-            relativeUrl, relativeUri);
-        return await reader.Read<T>(path);
+        if (!File.Exists(path) || overwrite)
+        {
+            return await FromApi();
+        }
+
+        try
+        {
+            logger.LogInformation(
+                "Retrieving data from local source instead of API. Url: {relativeUrl} Uri: {relativeUri}",
+                relativeUrl, relativeUri);
+
+            return await reader.Read<T>(path);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Exception caught while trying to read a data file...attempting to refresh from the API");
+            return await FromApi();
+        }
     }
 }
 

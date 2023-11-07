@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System.Text;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.ML;
 using Microsoft.ML.Data;
@@ -26,39 +27,89 @@ public class Trainer : ITrainer
 
     public async Task TrainAndSaveModel()
     {
-        Season[] seasons = await reader.Read<Season[]>(configuration["FilePath"]);
+        Season[] seasons = await reader.Read<Season[]>(configuration["DataPath"]);
+        var testFraction = configuration.GetValue<double>("TestFraction");
 
         logger.LogInformation("Attempting to train a model on '{seasonCount}' season(s)", seasons.Length);
 
         var trackNames = new List<string>();
         var riderNames = new List<string>();
-        IEnumerable<TrainingMotoGpEvent> data = PrepBeforeEvent(seasons, trackNames, riderNames);
+        //.Select((str, index) => new { Index = index, Value = str })
+        //.ToDictionary(item => item.Index, item => item.Value);
+        IEnumerable<TrainingMotoGpEvent> data = PreProcessData(seasons, trackNames, riderNames);
         logger.LogDebug("Track Names: {trackNames}", string.Join(", ", trackNames));
         logger.LogDebug("Rider Names: {riderNames}", string.Join(", ", riderNames));
 
         var context = new MLContext(seed: configuration.GetValue<int>("Seed"));
-        //context.Log += (sender, args) => logger.LogDebug(args.Message);
+        context.Log += (sender, args) => logger.LogTrace(args.Message);
 
         IDataView? dataView = context.Data.LoadFromEnumerable(data);
-        DataOperationsCatalog.TrainTestData view = context.Data.TrainTestSplit(dataView, 0.2);
+        //TODO configure train split
 
-        EstimatorChain<ColumnCopyingTransformer>? conversionPipeline = context
-                                                                       .Transforms.Concatenate("Features", "Year",
-                                                                           "TrackNameEncoded")
-                                                                       .Append(context.Transforms.CopyColumns("Label",
-                                                                           "RaceWinnerEncoded"));
+        IDataView trainView = dataView;
+        IDataView testView = dataView;
 
-        EstimatorChain<RegressionPredictionTransformer<LinearRegressionModelParameters>>? trainingPipeline =
+        if (testFraction > 0)
+        {
+            DataOperationsCatalog.TrainTestData splitView = context.Data.TrainTestSplit(dataView, testFraction);
+            trainView = splitView.TrainSet;
+            testView = splitView.TestSet;
+        }
+
+        EstimatorChain<ColumnCopyingTransformer>? conversionPipeline =
+            context.Transforms.Concatenate("Features", "Year", "TrackNameEncoded")
+                   .Append(context.Transforms.CopyColumns("Label", "RaceWinnerEncoded"));
+
+        //TODO Configure algo
+        //TODO evaluate multiple algos
+        EstimatorChain<RegressionPredictionTransformer<LinearRegressionModelParameters>>? sdcaPipeline =
             conversionPipeline
                 .Append(context.Regression.Trainers.Sdca(maximumNumberOfIterations: 100));
 
-        TransformerChain<RegressionPredictionTransformer<LinearRegressionModelParameters>>? model =
-            trainingPipeline.Fit(view.TrainSet);
+        var lbfgsPoissonPipeline =
+            conversionPipeline.Append(context.Regression.Trainers.LbfgsPoissonRegression());
 
-        context.Model.Save(model, view.TrainSet.Schema, configuration.GetValue<string>("ModelPath"));
+        var onlineGradientPipeline =
+            conversionPipeline.Append(context.Regression.Trainers.OnlineGradientDescent());
+
+        //TODO evaluate algos
+        IReadOnlyList<TrainCatalogBase.CrossValidationResult<RegressionMetrics>>? sdcaResults =
+            context.Regression.CrossValidate(dataView, sdcaPipeline);
+
+        IReadOnlyList<TrainCatalogBase.CrossValidationResult<RegressionMetrics>>? lbfgsPoissonResults =
+            context.Regression.CrossValidate(dataView, lbfgsPoissonPipeline);
+
+        //IReadOnlyList<TrainCatalogBase.CrossValidationResult<RegressionMetrics>>? onlineGradientResults =
+        //    context.Regression.CrossValidate(dataView, onlineGradientPipeline);
+
+        string GetResults(IReadOnlyList<TrainCatalogBase.CrossValidationResult<RegressionMetrics>>? results)
+        {
+            var builder = new StringBuilder();
+            foreach (TrainCatalogBase.CrossValidationResult<RegressionMetrics> result in results)
+            {
+                builder.AppendLine($"\t{result.Fold}: {result.Metrics.RSquared}");
+            }
+            return builder.ToString();
+        }
+
+        logger.LogInformation("SDCA Results: {results}", GetResults(sdcaResults));
+
+        logger.LogInformation("LBFGS Poisson Results: {results}", GetResults(lbfgsPoissonResults));
+
+        //logger.LogInformation("Online Gradient Results: {results}", GetResults(onlineGradientResults));
+
+
+
+        //TransformerChain<RegressionPredictionTransformer<LinearRegressionModelParameters>>? sdcaModel =
+        //    sdcaPipeline.Fit(trainView);
+
+        //context.Model.Save(sdcaModel, trainView.Schema,
+        //    configuration.GetValue<string>("ModelPath")
+        //                 .Replace("{algo}", "sdca")
+        //                 .Replace("{timestamp}", DateTime.Now.ToFileTimeUtc().ToString()));
     }
 
-    private IEnumerable<TrainingMotoGpEvent> PrepBeforeEvent(Season[] seasons, List<string> trackNames,
+    private IEnumerable<TrainingMotoGpEvent> PreProcessData(Season[] seasons, List<string> trackNames,
         List<string> riderNames)
     {
         IEnumerable<TrainingMotoGpEvent> events = seasons.SelectMany(season =>

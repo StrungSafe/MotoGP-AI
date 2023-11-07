@@ -30,35 +30,35 @@ namespace MotoGP
                                           .OrderByDescending(s => s.Year)
                                           .Take(configuration.GetValue<int>("MaxYearsToScrape"));
 
-            await Task.WhenAll(seasons.Select(async season =>
+            await Parallel.ForEachAsync(seasons, async (season, seasonToken) =>
             {
                 Event[] events = await repo.GetEvents(season.Id, true);
 
                 season.Events.AddRange(events);
 
-                await Task.WhenAll(season.Events.Select(async _event =>
+                await Parallel.ForEachAsync(season.Events, seasonToken, async (_event, eventToken) =>
                 {
                     Category[] categories = await repo.GetCategories(season.Id, _event.Id);
 
                     _event.Categories.AddRange(categories);
 
-                    await Task.WhenAll(_event.Categories.Select(async category =>
+                    await Parallel.ForEachAsync(_event.Categories, eventToken, async (category, categoryToken) =>
                     {
                         Session[] sessions = await repo.GetSessions(season.Id, _event.Id, category.Id);
 
                         category.Sessions.AddRange(sessions);
 
-                        await Task.WhenAll(category.Sessions.Select(async session =>
+                        await Parallel.ForEachAsync(category.Sessions,  categoryToken,async (session, sessionToken) =>
                         {
                             SessionClassification sessionClassification =
                                 await repo.GetSessionClassification(season.Id, _event.Id, category.Id, session.Id,
                                     false);
 
                             session.SessionClassification = sessionClassification;
-                        }));
-                    }));
-                }));
-            }));
+                        });
+                    });
+                });
+            });
 
             return seasons;
         }
