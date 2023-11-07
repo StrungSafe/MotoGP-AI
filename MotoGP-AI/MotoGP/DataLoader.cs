@@ -29,26 +29,30 @@ namespace MotoGP
                                           .Where(s => s.Year < DateTime.Now.Year)
                                           .OrderByDescending(s => s.Year)
                                           .Take(configuration.GetValue<int>("MaxYearsToScrape"));
-
-            await Parallel.ForEachAsync(seasons, async (season, seasonToken) =>
+            ParallelOptions options = new ParallelOptions()
+            {
+                MaxDegreeOfParallelism = 6,
+                CancellationToken = CancellationToken.None
+            };
+            await Parallel.ForEachAsync(seasons, options, async (season, seasonToken) =>
             {
                 Event[] events = await repo.GetEvents(season.Id, true);
 
                 season.Events.AddRange(events);
 
-                await Parallel.ForEachAsync(season.Events, seasonToken, async (_event, eventToken) =>
+                await Parallel.ForEachAsync(season.Events, options, async (_event, eventToken) =>
                 {
                     Category[] categories = await repo.GetCategories(season.Id, _event.Id);
 
                     _event.Categories.AddRange(categories);
 
-                    await Parallel.ForEachAsync(_event.Categories, eventToken, async (category, categoryToken) =>
+                    await Parallel.ForEachAsync(_event.Categories, options, async (category, categoryToken) =>
                     {
                         Session[] sessions = await repo.GetSessions(season.Id, _event.Id, category.Id);
 
                         category.Sessions.AddRange(sessions);
 
-                        await Parallel.ForEachAsync(category.Sessions,  categoryToken,async (session, sessionToken) =>
+                        await Parallel.ForEachAsync(category.Sessions, options, async (session, sessionToken) =>
                         {
                             SessionClassification sessionClassification =
                                 await repo.GetSessionClassification(season.Id, _event.Id, category.Id, session.Id,

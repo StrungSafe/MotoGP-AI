@@ -11,16 +11,18 @@ namespace MotoGP.Extensions
                    .AddSingleton<IDataWriter, JsonDataService>()
                    .AddSingleton<IDataReader, JsonDataService>();
 
+            builder.Services.AddSingleton<IHostExceptionHandler, HostExceptionHandler>();
+
             return builder;
         }
 
         public static HostApplicationBuilder AddMotoGp(this HostApplicationBuilder builder)
         {
+            builder.AddHelpers();
+
             builder.Services
                    .AddSingleton<IDataRepository, DataRepository>()
-                   .AddSingleton<IDataLoader, DataLoader>()
-                   .AddSingleton<IDataWriter, JsonDataService>()
-                   .AddSingleton<IDataReader, JsonDataService>();
+                   .AddSingleton<IDataLoader, DataLoader>();
 
             builder.Services
                    .AddHttpClient(builder.Configuration["MotoGP:Name"],

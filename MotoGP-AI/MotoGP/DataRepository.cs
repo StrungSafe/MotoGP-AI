@@ -62,7 +62,8 @@ public class DataRepository : IDataRepository
     private async Task<T> GetFromJson<T>(string relativeUrl, string relativeUri)
     {
         string path = Path.Join(configuration["DataRepository:RepoDirectory"], relativeUri);
-        var overwrite = configuration.GetValue<bool>("DataRepository:OverwriteData");
+        bool overwrite = configuration.GetValue<bool?>("DataRepository:Overwrite") ?? false;
+        bool overwriteOnError = configuration.GetValue<bool?>("DataRepository:OverwriteOnError") ?? true;
 
         async Task<T> FromApi()
         {
@@ -87,16 +88,14 @@ public class DataRepository : IDataRepository
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "Exception caught while trying to read a data file...attempting to refresh from the API");
-            return await FromApi();
-        }
-    }
-}
+            if (overwriteOnError)
+            {
+                logger.LogWarning(ex,
+                    "Exception caught while trying to read a local data file...attempting to refresh from the API");
+                return await FromApi();
+            }
 
-public class MotoGPHttpClient : HttpClient
-{
-    public MotoGPHttpClient(IConfiguration configuration)
-    {
-        //BaseAddress = "";
+            throw;
+        }
     }
 }

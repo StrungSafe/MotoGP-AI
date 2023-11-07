@@ -16,13 +16,10 @@ namespace MotoGP.Scraper
 
             IHost host = builder.Build();
 
+            var exceptionHandler = host.Services.GetRequiredService<IHostExceptionHandler>();
             var scraper = host.Services.GetRequiredService<IDataScraper>();
 
-            await scraper.Scrape();
-
-            Console.WriteLine("Finished w/ no errors...");
-            Console.WriteLine("Press <enter> to close");
-            Console.ReadLine();
+            await exceptionHandler.RunAsync(scraper.Scrape());
         }
     }
 }

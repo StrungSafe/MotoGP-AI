@@ -66,10 +66,10 @@ public class Trainer : ITrainer
             conversionPipeline
                 .Append(context.Regression.Trainers.Sdca(maximumNumberOfIterations: 100));
 
-        var lbfgsPoissonPipeline =
+        EstimatorChain<RegressionPredictionTransformer<PoissonRegressionModelParameters>>? lbfgsPoissonPipeline =
             conversionPipeline.Append(context.Regression.Trainers.LbfgsPoissonRegression());
 
-        var onlineGradientPipeline =
+        EstimatorChain<RegressionPredictionTransformer<LinearRegressionModelParameters>>? onlineGradientPipeline =
             conversionPipeline.Append(context.Regression.Trainers.OnlineGradientDescent());
 
         //TODO evaluate algos
@@ -89,6 +89,7 @@ public class Trainer : ITrainer
             {
                 builder.AppendLine($"\t{result.Fold}: {result.Metrics.RSquared}");
             }
+
             return builder.ToString();
         }
 
@@ -97,8 +98,6 @@ public class Trainer : ITrainer
         logger.LogInformation("LBFGS Poisson Results: {results}", GetResults(lbfgsPoissonResults));
 
         //logger.LogInformation("Online Gradient Results: {results}", GetResults(onlineGradientResults));
-
-
 
         //TransformerChain<RegressionPredictionTransformer<LinearRegressionModelParameters>>? sdcaModel =
         //    sdcaPipeline.Fit(trainView);
