@@ -11,8 +11,6 @@ namespace MotoGP.Extensions
                    .AddSingleton<IDataWriter, JsonDataService>()
                    .AddSingleton<IDataReader, JsonDataService>();
 
-            builder.Services.AddSingleton<IHostExceptionHandler, HostExceptionHandler>();
-
             return builder;
         }
 

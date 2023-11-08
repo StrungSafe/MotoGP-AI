@@ -25,7 +25,14 @@ public class DataScraper : IDataScraper
 
     public async Task Scrape()
     {
-        IEnumerable<Season> seasons = await loader.Load();
-        await writer.Write(configuration["FilePath"], seasons);
+        try
+        {
+            IEnumerable<Season> seasons = await loader.Load();
+            await writer.Write(configuration["FilePath"], seasons);
+        }
+        catch (Exception ex)
+        {
+            logger.LogCritical(ex, "There was an unhandled exception...unable to continue, shutting down.");
+        }
     }
 }

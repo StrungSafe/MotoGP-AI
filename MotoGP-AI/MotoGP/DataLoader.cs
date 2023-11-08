@@ -29,9 +29,10 @@ namespace MotoGP
                                           .Where(s => s.Year < DateTime.Now.Year)
                                           .OrderByDescending(s => s.Year)
                                           .Take(configuration.GetValue<int>("MaxYearsToScrape"));
-            ParallelOptions options = new ParallelOptions()
+
+            var options = new ParallelOptions
             {
-                MaxDegreeOfParallelism = 6,
+                MaxDegreeOfParallelism = 2, //TODO
                 CancellationToken = CancellationToken.None
             };
             await Parallel.ForEachAsync(seasons, options, async (season, seasonToken) =>
