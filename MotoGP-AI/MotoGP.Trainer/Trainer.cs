@@ -4,8 +4,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.Transforms;
-using MotoGP.Extensions;
 using MotoGP.Interfaces;
 
 namespace MotoGP.Trainer;
@@ -14,15 +12,19 @@ public class Trainer : ITrainer
 {
     private readonly IConfiguration configuration;
 
+    private readonly IDataFormatter dataFormatter;
+
     private readonly ILogger<Trainer> logger;
 
     private readonly IDataReader reader;
 
-    public Trainer(ILogger<Trainer> logger, IConfiguration configuration, IDataReader reader)
+    public Trainer(ILogger<Trainer> logger, IConfiguration configuration, IDataReader reader,
+        IDataFormatter dataFormatter)
     {
         this.logger = logger;
         this.configuration = configuration;
         this.reader = reader;
+        this.dataFormatter = dataFormatter;
     }
 
     public async Task TrainAndSaveModel()
@@ -36,7 +38,7 @@ public class Trainer : ITrainer
         var riderNames = new List<string>();
         //.Select((str, index) => new { Index = index, Value = str })
         //.ToDictionary(item => item.Index, item => item.Value);
-        IEnumerable<TrainingMotoGpEvent> data = PreProcessData(seasons, trackNames, riderNames);
+        IEnumerable<TrainingMotoGpEvent> data = dataFormatter.PreProcessData(seasons, trackNames, riderNames);
         logger.LogDebug("Track Names: {trackNames}", string.Join(", ", trackNames));
         logger.LogDebug("Rider Names: {riderNames}", string.Join(", ", riderNames));
 
@@ -56,9 +58,7 @@ public class Trainer : ITrainer
             testView = splitView.TestSet;
         }
 
-        EstimatorChain<ColumnCopyingTransformer>? conversionPipeline =
-            context.Transforms.Concatenate("Features", "Year", "TrackNameEncoded")
-                   .Append(context.Transforms.CopyColumns("Label", "RaceWinnerEncoded"));
+        IEstimator<ITransformer> conversionPipeline = dataFormatter.GetConversionPipeline(context);
 
         //TODO Configure algo
         //TODO evaluate multiple algos
@@ -69,8 +69,8 @@ public class Trainer : ITrainer
         EstimatorChain<RegressionPredictionTransformer<PoissonRegressionModelParameters>>? lbfgsPoissonPipeline =
             conversionPipeline.Append(context.Regression.Trainers.LbfgsPoissonRegression());
 
-        EstimatorChain<RegressionPredictionTransformer<LinearRegressionModelParameters>>? onlineGradientPipeline =
-            conversionPipeline.Append(context.Regression.Trainers.OnlineGradientDescent());
+        //EstimatorChain<RegressionPredictionTransformer<LinearRegressionModelParameters>>? onlineGradientPipeline =
+        //    conversionPipeline.Append(context.Regression.Trainers.OnlineGradientDescent());
 
         //TODO evaluate algos
         IReadOnlyList<TrainCatalogBase.CrossValidationResult<RegressionMetrics>>? sdcaResults =
@@ -107,45 +107,4 @@ public class Trainer : ITrainer
         //                 .Replace("{algo}", "sdca")
         //                 .Replace("{timestamp}", DateTime.Now.ToFileTimeUtc().ToString()));
     }
-
-    private IEnumerable<TrainingMotoGpEvent> PreProcessData(Season[] seasons, List<string> trackNames,
-        List<string> riderNames)
-    {
-        IEnumerable<TrainingMotoGpEvent> events = seasons.SelectMany(season =>
-        {
-            return season.Events.Where(_event => _event.HasMotoGpWinner()).Select(_event =>
-            {
-                string trackName = _event.Name;
-                string raceWinner = _event.GetMotoGpWinner();
-
-                if (!trackNames.Contains(trackName))
-                {
-                    trackNames.Add(trackName);
-                }
-
-                if (!riderNames.Contains(raceWinner))
-                {
-                    riderNames.Add(raceWinner);
-                }
-
-                return new TrainingMotoGpEvent
-                {
-                    Year = season.Year,
-                    TrackNameEncoded = trackNames.IndexOf(trackName),
-                    RaceWinnerEncoded = riderNames.IndexOf(raceWinner)
-                };
-            });
-        });
-
-        return events.ToArray();
-    }
-}
-
-public class TrainingMotoGpEvent
-{
-    public float RaceWinnerEncoded { get; set; }
-
-    public float TrackNameEncoded { get; set; }
-
-    public float Year { get; set; }
 }

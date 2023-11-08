@@ -12,17 +12,14 @@ namespace MotoGP.Trainer
 
             builder.AddHelpers();
 
-            builder.Services.AddSingleton<ITrainer, Trainer>();
+            builder.Services.AddSingleton<ITrainer, Trainer>()
+                   .AddSingleton<IDataFormatter, SimpleDataFormatter>();
 
             IHost host = builder.Build();
 
             var trainer = host.Services.GetRequiredService<ITrainer>();
 
             await trainer.TrainAndSaveModel();
-
-            Console.WriteLine("Finished w/ no errors...");
-            Console.WriteLine("Press <enter> to close");
-            Console.ReadLine();
         }
     }
 }

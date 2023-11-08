@@ -1,8 +1,6 @@
-﻿using MotoGP.Interfaces;
-
-namespace MotoGP.Analyzer;
+﻿namespace MotoGP.Analyzer;
 
 public interface IDataAnalyzer
 {
-    Task AnalyzeData(Season[] seasons);
+    Task AnalyzeData();
 }

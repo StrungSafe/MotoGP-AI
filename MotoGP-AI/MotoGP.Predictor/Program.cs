@@ -19,10 +19,6 @@ namespace MotoGP.Predictor
             var predictor = host.Services.GetRequiredService<IPredictor>();
 
             await predictor.Predict();
-
-            Console.WriteLine("Finished w/ no errors...");
-            Console.WriteLine("Press <enter> to close");
-            Console.ReadLine();
         }
     }
 }

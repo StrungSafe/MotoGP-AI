@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MotoGP.Interfaces;
 
@@ -6,15 +7,23 @@ namespace MotoGP.Analyzer;
 
 public class DataAnalyzer : IDataAnalyzer
 {
+    private readonly IConfiguration configuration;
+
     private readonly ILogger<DataAnalyzer> logger;
 
-    public DataAnalyzer(ILogger<DataAnalyzer> logger)
+    private readonly IDataReader reader;
+
+    public DataAnalyzer(ILogger<DataAnalyzer> logger, IConfiguration configuration, IDataReader reader)
     {
         this.logger = logger;
+        this.configuration = configuration;
+        this.reader = reader;
     }
 
-    public async Task AnalyzeData(Season[] seasons)
+    public async Task AnalyzeData()
     {
+        Season[] seasons = await reader.Read<Season[]>(configuration["FilePath"]);
+
         var categoryTypes = new Dictionary<string, string>();
         var sessionTypes = new Dictionary<string, string>();
         var trackTypes = new Dictionary<string, string>();
