@@ -28,7 +28,7 @@ public class Predictor : IPredictor
         var example = new MotoGpEvent
         {
             Year = 2023,
-            TrackNameEncoded = 5
+            EventNameEncoded = 5
         };
 
         MotoGpEventPrediction? prediction = engine.Predict(example);

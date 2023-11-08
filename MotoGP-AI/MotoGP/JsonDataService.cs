@@ -12,7 +12,7 @@ public class JsonDataService : IDataReader, IDataWriter
         this.logger = logger;
     }
 
-    public async Task<T> Read<T>(string filePath, CancellationToken cancellationToken)
+    public async Task<T> Read<T>(string filePath, CancellationToken token)
     {
         if (!File.Exists(filePath))
         {
@@ -20,11 +20,11 @@ public class JsonDataService : IDataReader, IDataWriter
             throw new Exception("Configured file does not exist");
         }
 
-        string contents = await File.ReadAllTextAsync(filePath, cancellationToken: cancellationToken);
+        string contents = await File.ReadAllTextAsync(filePath, cancellationToken: token);
         return JsonSerializer.Deserialize<T>(contents);
     }
 
-    public Task Write<T>(string filePath, T data, CancellationToken cancellationToken)
+    public Task Write<T>(string filePath, T data, CancellationToken token)
     {
         if (!Uri.TryCreate(filePath, UriKind.Absolute, out Uri? result))
         {
@@ -39,6 +39,6 @@ public class JsonDataService : IDataReader, IDataWriter
         }
 
         string contents = JsonSerializer.Serialize(data);
-        return File.WriteAllTextAsync(filePath, contents, cancellationToken);
+        return File.WriteAllTextAsync(filePath, contents, token);
     }
 }

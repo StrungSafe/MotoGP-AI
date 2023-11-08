@@ -34,19 +34,12 @@ public class Trainer : ITrainer
 
         logger.LogInformation("Attempting to train a model on '{seasonCount}' season(s)", seasons.Length);
 
-        var trackNames = new List<string>();
-        var riderNames = new List<string>();
-        //.Select((str, index) => new { Index = index, Value = str })
-        //.ToDictionary(item => item.Index, item => item.Value);
-        IEnumerable<TrainingMotoGpEvent> data = dataFormatter.PreProcessData(seasons, trackNames, riderNames);
-        logger.LogDebug("Track Names: {trackNames}", string.Join(", ", trackNames));
-        logger.LogDebug("Rider Names: {riderNames}", string.Join(", ", riderNames));
+        IEnumerable<TrainingMotoGpEvent> data = await dataFormatter.PreProcessData(seasons);
 
         var context = new MLContext(seed: configuration.GetValue<int>("Seed"));
         context.Log += (sender, args) => logger.LogTrace(args.Message);
 
         IDataView? dataView = context.Data.LoadFromEnumerable(data);
-        //TODO configure train split
 
         IDataView trainView = dataView;
         IDataView testView = dataView;
@@ -55,7 +48,7 @@ public class Trainer : ITrainer
         {
             DataOperationsCatalog.TrainTestData splitView = context.Data.TrainTestSplit(dataView, testFraction);
             trainView = splitView.TrainSet;
-            testView = splitView.TestSet;
+            testView = splitView.TestSet; //TODO
         }
 
         IEstimator<ITransformer> conversionPipeline = dataFormatter.GetConversionPipeline(context);
@@ -99,12 +92,12 @@ public class Trainer : ITrainer
 
         //logger.LogInformation("Online Gradient Results: {results}", GetResults(onlineGradientResults));
 
-        //TransformerChain<RegressionPredictionTransformer<LinearRegressionModelParameters>>? sdcaModel =
-        //    sdcaPipeline.Fit(trainView);
+        TransformerChain<RegressionPredictionTransformer<LinearRegressionModelParameters>>? sdcaModel =
+            sdcaPipeline.Fit(trainView);
 
-        //context.Model.Save(sdcaModel, trainView.Schema,
-        //    configuration.GetValue<string>("ModelPath")
-        //                 .Replace("{algo}", "sdca")
-        //                 .Replace("{timestamp}", DateTime.Now.ToFileTimeUtc().ToString()));
+        context.Model.Save(sdcaModel, trainView.Schema,
+            configuration.GetValue<string>("ModelPath")
+                         .Replace("{algo}", "sdca")
+                         .Replace("{timestamp}", DateTime.Now.ToFileTimeUtc().ToString()));
     }
 }

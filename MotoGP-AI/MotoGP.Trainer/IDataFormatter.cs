@@ -7,5 +7,5 @@ public interface IDataFormatter
 {
     IEstimator<ITransformer> GetConversionPipeline(MLContext context);
 
-    IEnumerable<TrainingMotoGpEvent> PreProcessData(Season[] seasons, List<string> trackNames, List<string> riderNames);
+    Task<IEnumerable<TrainingMotoGpEvent>> PreProcessData(Season[] seasons);
 }

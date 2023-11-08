@@ -22,21 +22,22 @@ public class DataAnalyzer : IDataAnalyzer
 
     public async Task AnalyzeData()
     {
+        logger.LogInformation("Analyzing the data...");
         Season[] seasons = await reader.Read<Season[]>(configuration["FilePath"]);
 
         var categoryTypes = new Dictionary<string, string>();
         var sessionTypes = new Dictionary<string, string>();
-        var trackTypes = new Dictionary<string, string>();
+        var eventTypes = new Dictionary<string, string>();
         var weatherTypes = new Dictionary<string, string>();
         var recordTypes = new Dictionary<string, string>();
-        var trackNames = new Dictionary<string, string>();
-        var racerNames = new Dictionary<string, string>();
+        var eventNames = new Dictionary<string, string>();
+        var riderNames = new Dictionary<string, string>();
 
         foreach (Season season in seasons)
         {
             foreach (Event _event in season.Events)
             {
-                trackNames.TryAdd(_event.Name, _event.Name);
+                eventNames.TryAdd(_event.Name, _event.Name);
 
                 foreach (Category category in _event.Categories)
                 {
@@ -46,12 +47,12 @@ public class DataAnalyzer : IDataAnalyzer
                     {
                         sessionTypes.TryAdd(session.Type, session.Type);
 
-                        trackTypes.TryAdd(session.Condition.Track, session.Condition.Track);
+                        eventTypes.TryAdd(session.Condition.Track, session.Condition.Track);
                         weatherTypes.TryAdd(session.Condition.Weather, session.Condition.Weather);
 
                         foreach (Classification classification in session.SessionClassification.Classifications)
                         {
-                            racerNames.TryAdd(classification.Rider.FullName, classification.Rider.FullName);
+                            riderNames.TryAdd(classification.Rider.FullName, classification.Rider.FullName);
                         }
 
                         foreach (Record record in session.SessionClassification.Records)
@@ -67,15 +68,15 @@ public class DataAnalyzer : IDataAnalyzer
         {
             return string.Join(separator, values);
         }
+        
+        logger.LogDebug("Category Types: {categoryTypes}", Join(categoryTypes.Values));
+        logger.LogDebug("Session Types: {sessionTypes}", Join(sessionTypes.Values));
+        logger.LogDebug("Event Types: {eventTypes}", Join(eventTypes.Values));
+        logger.LogDebug("Weather Types: {weatherTypes}", Join(weatherTypes.Values));
+        logger.LogDebug("Record Types: {recordTypes}", Join(recordTypes.Values));
+        logger.LogDebug("Event Names ({eventCount}): {eventNames}", eventNames.Count, Join(eventNames.Values, $", {Environment.NewLine}"));
+        logger.LogDebug("Riders ({riderCount}): {riderNames}", riderNames.Values.Count, Join(riderNames.Values, $", {Environment.NewLine}"));
 
-        var builder = new StringBuilder();
-        builder.AppendLine($"Category Types: {Join(categoryTypes.Values)}");
-        builder.AppendLine($"Session Types: {Join(sessionTypes.Values)}");
-        builder.AppendLine($"Track Types: {Join(trackTypes.Values)}");
-        builder.AppendLine($"Weather Types: {Join(weatherTypes.Values)}");
-        builder.AppendLine($"Record Types: {Join(recordTypes.Values)}");
-        builder.AppendLine($"Track Names: {Join(trackNames.Values, $", {Environment.NewLine}")}");
-        builder.AppendLine($"Riders: {Join(racerNames.Values, $", {Environment.NewLine}")}");
-        logger.LogInformation(builder.ToString());
+        await Task.Delay(100);
     }
 }

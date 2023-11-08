@@ -2,5 +2,5 @@
 
 public interface IDataReader
 {
-    Task<T> Read<T>(string filePath, CancellationToken cancellationToken = default);
+    Task<T> Read<T>(string filePath, CancellationToken token = default);
 }

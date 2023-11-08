@@ -2,5 +2,5 @@
 
 public interface IDataScraper
 {
-    Task Scrape();
+    Task Scrape(CancellationToken token = default);
 }
