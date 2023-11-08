@@ -77,6 +77,6 @@ public class DataAnalyzer : IDataAnalyzer
         logger.LogDebug("Event Names ({eventCount}): {eventNames}", eventNames.Count, Join(eventNames.Values, $", {Environment.NewLine}"));
         logger.LogDebug("Riders ({riderCount}): {riderNames}", riderNames.Values.Count, Join(riderNames.Values, $", {Environment.NewLine}"));
 
-        await Task.Delay(100);
+        await Task.Delay(100); //TODO
     }
 }
