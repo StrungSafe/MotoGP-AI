@@ -1,5 +1,4 @@
 ﻿using System.Net.Http.Json;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MotoGP.Configuration;
@@ -12,11 +11,11 @@ public class DataRepository : IDataRepository
 {
     private readonly IHttpClientFactory clientFactory;
 
-    private readonly RepositorySettings settings;
-
     private readonly ILogger<DataRepository> logger;
 
     private readonly IDataReader reader;
+
+    private readonly RepositorySettings settings;
 
     private readonly IDataWriter writer;
 
