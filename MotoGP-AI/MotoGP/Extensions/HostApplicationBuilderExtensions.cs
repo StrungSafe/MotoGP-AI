@@ -32,7 +32,7 @@ namespace MotoGP.Extensions
                    .AddOptions()
                    .Configure<AppSettings>(builder.Configuration.GetSection(nameof(AppSettings)))
                    .Configure<Repository>(builder.Configuration.GetSection(nameof(Repository)))
-                   .Configure<WorkingSpace>(builder.Configuration.GetSection(nameof(WorkingSpace)))
+                   .Configure<MachineLearning>(builder.Configuration.GetSection(nameof(MachineLearning)))
                    .AddSingleton<IDataRepository, DataRepository>()
                    .AddSingleton<IDataLoader, DataLoader>()
                    .AddSingleton<ThrottlingDelegatingHandler>()

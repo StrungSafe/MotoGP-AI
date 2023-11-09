@@ -1,4 +1,4 @@
-﻿namespace MotoGP.Data
+﻿namespace MotoGP.Api
 {
     public class Session
     {

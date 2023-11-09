@@ -1,8 +1,8 @@
 ﻿using System.Net.Http.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MotoGP.Api;
 using MotoGP.Configuration;
-using MotoGP.Data;
 using MotoGP.Utilities;
 
 namespace MotoGP.Repositories;
@@ -90,9 +90,11 @@ public class DataRepository : IDataRepository
         bool overwriteCache = settings.LocalCache.Overwrite;
         bool overwriteCacheOnError = settings.LocalCache.OverwriteOnError;
         string path = Path.Join(settings.LocalCache.Directory.LocalPath, relativeUri);
+        var fileExists = File.Exists(path);
 
-        if (!File.Exists(path) || overwriteCache || !cacheEnabled)
+        if (!fileExists || overwriteCache || !cacheEnabled)
         {
+            logger.LogDebug("Getting the data from the api {fileExists} {overwriteCache} {cacheEnabled}", fileExists, overwriteCache, cacheEnabled);
             return await FromApi<T>(relativeUrl, path, cancellationToken);
         }
 
@@ -101,18 +103,15 @@ public class DataRepository : IDataRepository
             logger.LogInformation(
                 "Retrieving data from local source instead of API. Url: {relativeUrl} Uri: {relativeUri}",
                 relativeUrl, relativeUri);
-
             return await reader.Read<T>(path, cancellationToken);
         }
         catch (Exception ex)
         {
+            logger.LogWarning(ex, "Exception caught while trying to read a local data file {overwriteCacheOnError}", overwriteCacheOnError);
             if (overwriteCacheOnError)
             {
-                logger.LogWarning(ex,
-                    "Exception caught while trying to read a local data file...attempting to refresh from the API");
                 return await FromApi<T>(relativeUrl, path, cancellationToken);
             }
-
             throw;
         }
     }

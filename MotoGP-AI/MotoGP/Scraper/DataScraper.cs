@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MotoGP.Api;
 using MotoGP.Configuration;
 using MotoGP.Data;
 using MotoGP.Utilities;
@@ -12,12 +13,12 @@ public class DataScraper : IDataScraper
 
     private readonly ILogger<DataScraper> logger;
 
-    private readonly WorkingSpace settings;
+    private readonly MachineLearning settings;
 
     private readonly IDataWriter writer;
 
     public DataScraper(ILogger<DataScraper> logger, IDataLoader loader, IDataWriter writer,
-        IOptions<WorkingSpace> settings)
+        IOptions<MachineLearning> settings)
     {
         this.logger = logger;
         this.loader = loader;
@@ -29,34 +30,29 @@ public class DataScraper : IDataScraper
     {
         IEnumerable<Season> seasons = await loader.Load(token);
         await Task.WhenAll(WriteSeasons(seasons, token),
-            WriteEvents(seasons, token),
-            WriteRiders(seasons, token));
+            WriteRiders(seasons, token),
+            WriteCircuits(seasons, token));
     }
 
-    private async Task WriteEvents(IEnumerable<Season> seasons, CancellationToken token)
+    private async Task WriteCircuits(IEnumerable<Season> seasons, CancellationToken token)
     {
-        Dictionary<int, Event> events = seasons.SelectMany(s => s.Events)
-                                               .DistinctBy(e => e.Name)
-                                               .Select(e => new Event
-                                               {
-                                                   Name = e.Name
-                                               })
-                                               .Select((value, index) => new { Index = index, Value = value })
-                                               .ToDictionary(item => item.Index, item => item.Value);
-        string path = Path.Join(settings.Objects.LocalPath, "events.json");
-        await writer.Write(path, events, token);
+        Dictionary<int, string> circuits = seasons.SelectMany(s => s.Events).SelectMany(e => e.Categories)
+                                                       .SelectMany(c => c.Sessions)
+                                                       .DistinctBy(c => c.Circuit)
+                                                       .Select(c => c.Circuit)
+                                                       .Select((value, index) => new { Index = index, Value = value })
+                                                       .ToDictionary(item => item.Index, item => item.Value);
+        string path = Path.Join(settings.Objects.LocalPath, "circuits.json");
+        await writer.Write(path, circuits, token);
     }
 
     private async Task WriteRiders(IEnumerable<Season> seasons, CancellationToken token)
     {
-        Dictionary<int, Rider> riders = seasons.SelectMany(s => s.Events).SelectMany(e => e.Categories)
+        Dictionary<int, string> riders = seasons.SelectMany(s => s.Events).SelectMany(e => e.Categories)
                                                .SelectMany(c => c.Sessions).SelectMany(s =>
                                                    s.SessionClassification.Classifications)
                                                .DistinctBy(c => c.Rider.FullName)
-                                               .Select(c => new Rider
-                                               {
-                                                   FullName = c.Rider.FullName
-                                               })
+                                               .Select(c => c.Rider.FullName)
                                                .Select((value, index) => new { Index = index, Value = value })
                                                .ToDictionary(item => item.Index, item => item.Value);
         string path = Path.Join(settings.Objects.LocalPath, "riders.json");

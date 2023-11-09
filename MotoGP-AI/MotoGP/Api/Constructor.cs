@@ -1,6 +1,6 @@
-﻿namespace MotoGP.Data;
+﻿namespace MotoGP.Api;
 
-public class Team
+public class Constructor
 {
     public Guid Id { get; set; }
 

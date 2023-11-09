@@ -1,43 +1,45 @@
 ﻿using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
-using MotoGP.Data;
+using MotoGP.Api;
+using MotoGP.Configuration;
 using MotoGP.Utilities;
 
 namespace MotoGP.Trainer;
 
 public class DataTrainer : IDataTrainer
 {
-    private readonly IConfiguration configuration;
-
     private readonly IDataFormatter dataFormatter;
 
     private readonly ILogger<DataTrainer> logger;
 
     private readonly IDataReader reader;
+    private readonly MachineLearning settings;
 
-    public DataTrainer(ILogger<DataTrainer> logger, IConfiguration configuration, IDataReader reader,
+    public DataTrainer(ILogger<DataTrainer> logger, IOptions<MachineLearning> settings, IDataReader reader,
         IDataFormatter dataFormatter)
     {
         this.logger = logger;
-        this.configuration = configuration;
+        this.settings = settings.Value;
         this.reader = reader;
         this.dataFormatter = dataFormatter;
     }
 
     public async Task TrainAndSaveModel()
     {
-        Season[] seasons = await reader.Read<Season[]>(configuration["DataPath"]);
-        var testFraction = configuration.GetValue<double>("TestFraction");
+        var dataPath = Path.Join(settings.Objects.LocalPath, "seasons.json");
+        Season[] seasons = await reader.Read<Season[]>(dataPath);
+        var testFraction = settings.TestFraction;
 
         logger.LogInformation("Attempting to train a model on '{seasonCount}' season(s)", seasons.Length);
 
         IEnumerable<TrainingMotoGpEvent> data = await dataFormatter.PreProcessData(seasons);
 
-        var context = new MLContext(seed: configuration.GetValue<int>("Seed"));
+        var context = new MLContext(settings.Seed);
         context.Log += (sender, args) => logger.LogTrace(args.Message);
 
         IDataView? dataView = context.Data.LoadFromEnumerable(data);
@@ -76,7 +78,7 @@ public class DataTrainer : IDataTrainer
         //IReadOnlyList<TrainCatalogBase.CrossValidationResult<RegressionMetrics>>? onlineGradientResults =
         //    context.Regression.CrossValidate(dataView, onlineGradientPipeline);
 
-        string GetResults(IReadOnlyList<TrainCatalogBase.CrossValidationResult<RegressionMetrics>>? results)
+        string GetResults(IReadOnlyList<TrainCatalogBase.CrossValidationResult<RegressionMetrics>> results)
         {
             var builder = new StringBuilder();
             foreach (TrainCatalogBase.CrossValidationResult<RegressionMetrics> result in results)
@@ -96,9 +98,8 @@ public class DataTrainer : IDataTrainer
         TransformerChain<RegressionPredictionTransformer<LinearRegressionModelParameters>>? sdcaModel =
             sdcaPipeline.Fit(trainView);
 
-        context.Model.Save(sdcaModel, trainView.Schema,
-            configuration.GetValue<string>("ModelPath")
-                         .Replace("{algo}", "sdca")
-                         .Replace("{timestamp}", DateTime.Now.ToFileTimeUtc().ToString()));
+        //TODO Ensure directory exists....model.save won't create the directory
+        var modelPath = Path.Join(settings.Models.LocalPath, $"model_{"sdca"}_{DateTime.UtcNow.ToFileTimeUtc()}.zip");
+        context.Model.Save(sdcaModel, trainView.Schema, modelPath);
     }
 }

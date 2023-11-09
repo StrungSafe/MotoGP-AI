@@ -70,7 +70,7 @@ namespace MotoGP
                     Console.WriteLine("***************");
                     Console.WriteLine();
                 }
-            } while (!string.Equals("exit", input) && service > 1);
+            } while (!string.Equals("exit", input) && service != 0);
         }
     }
 }

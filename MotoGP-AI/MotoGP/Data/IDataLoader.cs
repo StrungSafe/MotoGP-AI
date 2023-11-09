@@ -1,4 +1,6 @@
-﻿namespace MotoGP.Data
+﻿using MotoGP.Api;
+
+namespace MotoGP.Data
 {
     public interface IDataLoader
     {
