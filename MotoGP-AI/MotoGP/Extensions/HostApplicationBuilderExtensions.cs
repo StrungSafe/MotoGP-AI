@@ -39,7 +39,7 @@ namespace MotoGP.Extensions
                    .AddHttpClient<MotoGpClient>((provider, client) =>
                    {
                        var settings = provider.GetRequiredService<IOptions<Repository>>();
-                       client.BaseAddress = settings.Value.HttpClient.BaseAddress;
+                       client.BaseAddress = new Uri(settings.Value.Client.BaseAddress, UriKind.Absolute);
                    })
                    .AddHttpMessageHandler<ThrottlingDelegatingHandler>();
 

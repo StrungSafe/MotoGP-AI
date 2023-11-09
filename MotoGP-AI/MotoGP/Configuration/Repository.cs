@@ -2,7 +2,7 @@
 {
     public class Repository
     {
-        public HttpClient HttpClient { get; set; }
+        public Client Client { get; set; }
 
         public LocalCache LocalCache { get; set; }
     }

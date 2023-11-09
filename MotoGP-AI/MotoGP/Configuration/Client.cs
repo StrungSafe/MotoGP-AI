@@ -1,8 +1,8 @@
 ﻿namespace MotoGP.Configuration
 {
-    public class HttpClient
+    public class Client
     {
-        public Uri BaseAddress { get; set; }
+        public string BaseAddress { get; set; }
 
         public string Name { get; set; }
     }

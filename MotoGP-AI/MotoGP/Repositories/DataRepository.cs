@@ -65,7 +65,12 @@ public class DataRepository : IDataRepository
     {
         try
         {
-            var data = await client.GetFromJsonAsync<T>(new Uri(relativeUrl, UriKind.Relative), token);
+            var data = await client.GetAsync<T>(new Uri(relativeUrl, UriKind.Relative), token);
+            if (data == null)
+            {
+                //TODO better handling? is this a real scenario
+                throw new Exception($"An object was expected but a null object was returned from '{relativeUrl}'");
+            }
             await writer.Write(relativeUri, data, token);
             return data;
         }
