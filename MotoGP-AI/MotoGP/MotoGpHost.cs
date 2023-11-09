@@ -57,7 +57,16 @@ namespace MotoGP
                                 await trainer.TrainAndSaveModel();
                                 break;
                             case 4:
-                                await predictor.Predict();
+                                Console.WriteLine("Provide the encoded circuit name");
+                                var i = Console.ReadLine();
+                                if(int.TryParse(i, out int encoded))
+                                {
+                                    var prediction = await predictor.Predict(new MotoGpEvent()
+                                    {
+                                        EventNameEncoded = encoded
+                                    });
+                                    Console.WriteLine($"The predicted winner is {prediction.Winner}");
+                                }
                                 break;
                         }
                     }

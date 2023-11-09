@@ -70,7 +70,7 @@ public class DataTrainer : IDataTrainer
 
         //TODO evaluate algos
         IReadOnlyList<TrainCatalogBase.CrossValidationResult<RegressionMetrics>>? sdcaResults =
-            context.Regression.CrossValidate(dataView, sdcaPipeline);
+            context.Regression.CrossValidate(dataView, sdcaPipeline, numberOfFolds: 5);
 
         IReadOnlyList<TrainCatalogBase.CrossValidationResult<RegressionMetrics>>? lbfgsPoissonResults =
             context.Regression.CrossValidate(dataView, lbfgsPoissonPipeline);
@@ -81,9 +81,14 @@ public class DataTrainer : IDataTrainer
         string GetResults(IReadOnlyList<TrainCatalogBase.CrossValidationResult<RegressionMetrics>> results)
         {
             var builder = new StringBuilder();
+            builder.AppendLine();
             foreach (TrainCatalogBase.CrossValidationResult<RegressionMetrics> result in results)
             {
-                builder.AppendLine($"\t{result.Fold}: {result.Metrics.RSquared}");
+                builder.AppendLine($"\t{result.Fold}:");
+                builder.AppendLine($"\t\tR-squared: {result.Metrics.RSquared}");
+                builder.AppendLine($"\t\tAbsolute-loss: {result.Metrics.MeanAbsoluteError}");
+                builder.AppendLine($"\t\tSquared-loss: {result.Metrics.MeanSquaredError}");
+                builder.AppendLine($"\t\tRMS-loss: {result.Metrics.RootMeanSquaredError}");
             }
 
             return builder.ToString();
@@ -93,10 +98,15 @@ public class DataTrainer : IDataTrainer
 
         logger.LogInformation("LBFGS Poisson Results: {results}", GetResults(lbfgsPoissonResults));
 
+        var bestResult = sdcaResults.OrderBy(r => Math.Abs(r.Metrics.RSquared)).First();
+        var sdcaModel = bestResult.Model;
+
         //logger.LogInformation("Online Gradient Results: {results}", GetResults(onlineGradientResults));
 
-        TransformerChain<RegressionPredictionTransformer<LinearRegressionModelParameters>>? sdcaModel =
-            sdcaPipeline.Fit(trainView);
+        //sdcaResults.First().Model
+
+        //TransformerChain<RegressionPredictionTransformer<LinearRegressionModelParameters>>? sdcaModel =
+        //    sdcaPipeline.Fit(trainView);
 
         //TODO Ensure directory exists....model.save won't create the directory
         var modelPath = Path.Join(settings.Models.LocalPath, $"model_{"sdca"}_{DateTime.UtcNow.ToFileTimeUtc()}.zip");

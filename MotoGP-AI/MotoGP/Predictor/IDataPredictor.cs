@@ -2,5 +2,5 @@
 
 public interface IDataPredictor
 {
-    Task Predict();
+    Task<MotoGpEventPrediction> Predict(MotoGpEvent example);
 }

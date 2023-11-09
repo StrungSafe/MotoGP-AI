@@ -1,6 +1,10 @@
-﻿namespace MotoGP.Predictor;
+﻿using Microsoft.ML.Data;
+
+namespace MotoGP.Predictor;
 
 public class MotoGpEventPrediction
 {
-    public float Score { get; set; }
+    [ColumnName("Score")]
+    public float WinnerEncoded { get; set; }
+    public string Winner { get; set; }
 }

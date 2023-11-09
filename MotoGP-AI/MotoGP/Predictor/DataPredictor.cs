@@ -1,40 +1,45 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.ML;
+using MotoGP.Configuration;
+using MotoGP.Utilities;
 
 namespace MotoGP.Predictor;
 
 public class DataPredictor : IDataPredictor
 {
-    private readonly IConfiguration configuration;
+    
 
+    private readonly MachineLearning settings;
     private readonly ILogger<DataPredictor> logger;
+    private readonly IDataReader reader;
 
-    public DataPredictor(ILogger<DataPredictor> logger, IConfiguration configuration)
+    public DataPredictor(ILogger<DataPredictor> logger, IOptions<MachineLearning> settings, IDataReader reader)
     {
         this.logger = logger;
-        this.configuration = configuration;
+        this.reader = reader;
+        this.settings = settings.Value;
+        this.logger = logger;
     }
 
-    public async Task Predict()
+    public async Task<MotoGpEventPrediction> Predict(MotoGpEvent example)
     {
-        var context = new MLContext(seed: configuration.GetValue<int>("Seed"));
+        var context = new MLContext(settings.Seed);
 
-        ITransformer? model = context.Model.Load(configuration["ModelPath"], out DataViewSchema schema);
+        var path = Path.Join(settings.Models.LocalPath, "model.zip");
+        ITransformer? model = context.Model.Load(path, out DataViewSchema schema);
 
-        PredictionEngine<MotoGpEvent, MotoGpEventPrediction>? engine =
+        PredictionEngine<MotoGpEvent, MotoGpEventPrediction> engine =
             context.Model.CreatePredictionEngine<MotoGpEvent, MotoGpEventPrediction>(model);
 
-        var example = new MotoGpEvent
-        {
-            Year = 2023,
-            EventNameEncoded = 5
-        };
+        MotoGpEventPrediction prediction = engine.Predict(example);
 
-        MotoGpEventPrediction? prediction = engine.Predict(example);
+        var ridersPath = Path.Join(settings.Objects.LocalPath, "riders.json");
+        var riders = await reader.Read<Dictionary<int, string>>(ridersPath);
 
-        var rider = (int)Math.Round(prediction.Score, MidpointRounding.AwayFromZero);
-        Console.WriteLine($"prediction {prediction.Score} rider {rider}");
-        await Task.Delay(0);
+        var roudedScore = (int)Math.Round(prediction.WinnerEncoded, MidpointRounding.AwayFromZero);
+        prediction.Winner = riders[roudedScore];
+        return prediction;
     }
 }
