@@ -1,6 +1,6 @@
 ﻿namespace MotoGP.Predictor;
 
-public interface IPredictor
+public interface IDataPredictor
 {
     Task Predict();
 }

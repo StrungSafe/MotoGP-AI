@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MotoGP.Configuration;
 using MotoGP.Repositories;
@@ -8,11 +7,11 @@ namespace MotoGP.Data
 {
     public class DataLoader : IDataLoader
     {
-        private readonly AppSettings settings;
-
         private readonly ILogger<DataLoader> logger;
 
         private readonly IDataRepository repo;
+
+        private readonly AppSettings settings;
 
         public DataLoader(ILogger<DataLoader> logger,
             IOptions<AppSettings> settings, IDataRepository repo)
@@ -34,9 +33,10 @@ namespace MotoGP.Data
 
             var options = new ParallelOptions
             {
-                MaxDegreeOfParallelism = -1, //TODO Default for now, no upper bound, http client is throttled
+                MaxDegreeOfParallelism = settings.MaxDegreeOfParallelism,
                 CancellationToken = token
             };
+            //TODO revisit doing it this way and passing options this way
             await Parallel.ForEachAsync(seasons, options, async (season, seasonToken) =>
             {
                 Event[] events = await repo.GetEvents(season.Id, true, seasonToken);

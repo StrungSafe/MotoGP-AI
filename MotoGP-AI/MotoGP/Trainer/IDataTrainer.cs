@@ -1,6 +1,6 @@
 ﻿namespace MotoGP.Trainer;
 
-public interface ITrainer
+public interface IDataTrainer
 {
     Task TrainAndSaveModel();
 }

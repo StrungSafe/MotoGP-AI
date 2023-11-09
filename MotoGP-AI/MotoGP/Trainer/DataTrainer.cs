@@ -9,17 +9,17 @@ using MotoGP.Utilities;
 
 namespace MotoGP.Trainer;
 
-public class Trainer : ITrainer
+public class DataTrainer : IDataTrainer
 {
     private readonly IConfiguration configuration;
 
     private readonly IDataFormatter dataFormatter;
 
-    private readonly ILogger<Trainer> logger;
+    private readonly ILogger<DataTrainer> logger;
 
     private readonly IDataReader reader;
 
-    public Trainer(ILogger<Trainer> logger, IConfiguration configuration, IDataReader reader,
+    public DataTrainer(ILogger<DataTrainer> logger, IConfiguration configuration, IDataReader reader,
         IDataFormatter dataFormatter)
     {
         this.logger = logger;

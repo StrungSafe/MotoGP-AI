@@ -1,6 +1,8 @@
 ﻿using System.Net.Http.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using MotoGP.Configuration;
 using MotoGP.Data;
 using MotoGP.Utilities;
 
@@ -10,7 +12,7 @@ public class DataRepository : IDataRepository
 {
     private readonly IHttpClientFactory clientFactory;
 
-    private readonly IConfiguration configuration;
+    private readonly RepositorySettings settings;
 
     private readonly ILogger<DataRepository> logger;
 
@@ -19,11 +21,11 @@ public class DataRepository : IDataRepository
     private readonly IDataWriter writer;
 
     public DataRepository(ILogger<DataRepository> logger, IHttpClientFactory clientFactory,
-        IConfiguration configuration, IDataWriter writer, IDataReader reader)
+        IOptions<RepositorySettings> settings, IDataWriter writer, IDataReader reader)
     {
         this.logger = logger;
         this.clientFactory = clientFactory;
-        this.configuration = configuration;
+        this.settings = settings.Value;
         this.writer = writer;
         this.reader = reader;
     }
@@ -66,23 +68,23 @@ public class DataRepository : IDataRepository
             logger.BeginScope("API Url: {relativeUrl} URI: {relativeUri}", relativeUrl, relativeUri);
         try
         {
-            using HttpClient client = clientFactory.CreateClient(configuration["MotoGP:Name"]);
+            using HttpClient client = clientFactory.CreateClient(settings.Name);
             var data = await client.GetFromJsonAsync<T>(new Uri(relativeUrl, UriKind.Relative), token);
             await writer.Write(relativeUri, data, token);
             return data;
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error thrown trying to get data from API");//TODO
+            logger.LogError(ex, "Error thrown trying to get data from API"); //TODO
             throw;
         }
     }
 
     private async Task<T> GetFromJson<T>(string relativeUrl, string relativeUri, CancellationToken cancellationToken)
     {
-        string path = Path.Join(configuration["DataRepository:RepoDirectory"], relativeUri);
-        bool overwrite = configuration.GetValue<bool?>("DataRepository:Overwrite") ?? false;
-        bool overwriteOnError = configuration.GetValue<bool?>("DataRepository:OverwriteOnError") ?? true;
+        string path = Path.Join(settings.LocalRepositorySettings.Directory.ToString(), relativeUri);
+        bool overwrite = settings.LocalRepositorySettings.Overwrite;
+        bool overwriteOnError = settings.LocalRepositorySettings.OverwriteOnError;
 
         if (!File.Exists(path) || overwrite)
         {

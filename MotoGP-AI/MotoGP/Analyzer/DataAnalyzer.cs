@@ -1,5 +1,4 @@
-﻿using System.Text;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MotoGP.Data;
 using MotoGP.Utilities;
@@ -69,15 +68,17 @@ public class DataAnalyzer : IDataAnalyzer
         {
             return string.Join(separator, values);
         }
-        
+
         logger.LogDebug("Category Types: {categoryTypes}", Join(categoryTypes.Values));
         logger.LogDebug("Session Types: {sessionTypes}", Join(sessionTypes.Values));
         logger.LogDebug("Event Types: {eventTypes}", Join(eventTypes.Values));
         logger.LogDebug("Weather Types: {weatherTypes}", Join(weatherTypes.Values));
         logger.LogDebug("Record Types: {recordTypes}", Join(recordTypes.Values));
-        logger.LogDebug("Event Names ({eventCount}): {eventNames}", eventNames.Count, Join(eventNames.Values, $", {Environment.NewLine}"));
-        logger.LogDebug("Riders ({riderCount}): {riderNames}", riderNames.Values.Count, Join(riderNames.Values, $", {Environment.NewLine}"));
+        logger.LogDebug("Event Names ({eventCount}): {eventNames}", eventNames.Count,
+            Join(eventNames.Values, $", {Environment.NewLine}"));
+        logger.LogDebug("Riders ({riderCount}): {riderNames}", riderNames.Values.Count,
+            Join(riderNames.Values, $", {Environment.NewLine}"));
 
-        await Task.Delay(100); //TODO
+        await Task.Delay(100); //TODO logger not flushing...there is a way to flush but need to find out again
     }
 }

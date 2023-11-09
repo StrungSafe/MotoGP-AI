@@ -4,13 +4,13 @@ using Microsoft.ML;
 
 namespace MotoGP.Predictor;
 
-public class Predictor : IPredictor
+public class DataPredictor : IDataPredictor
 {
     private readonly IConfiguration configuration;
 
-    private readonly ILogger<Predictor> logger;
+    private readonly ILogger<DataPredictor> logger;
 
-    public Predictor(ILogger<Predictor> logger, IConfiguration configuration)
+    public DataPredictor(ILogger<DataPredictor> logger, IConfiguration configuration)
     {
         this.logger = logger;
         this.configuration = configuration;
