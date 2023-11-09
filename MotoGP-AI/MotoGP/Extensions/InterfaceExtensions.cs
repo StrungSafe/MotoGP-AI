@@ -1,4 +1,4 @@
-﻿using MotoGP.Interfaces;
+﻿using MotoGP.Data;
 
 namespace MotoGP.Extensions
 {

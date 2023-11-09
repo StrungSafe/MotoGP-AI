@@ -1,6 +1,6 @@
-﻿using MotoGP.Interfaces;
+﻿using MotoGP.Data;
 
-namespace MotoGP;
+namespace MotoGP.Repositories;
 
 public interface IDataRepository
 {

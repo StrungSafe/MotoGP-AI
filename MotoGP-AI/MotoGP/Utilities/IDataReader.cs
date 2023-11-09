@@ -1,4 +1,4 @@
-﻿namespace MotoGP;
+﻿namespace MotoGP.Utilities;
 
 public interface IDataReader
 {

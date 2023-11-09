@@ -1,5 +1,5 @@
 ﻿using Microsoft.ML;
-using MotoGP.Interfaces;
+using MotoGP.Data;
 
 namespace MotoGP.Trainer;
 

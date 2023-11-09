@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace MotoGP.Interfaces
+namespace MotoGP.Data
 {
     public class Classification
     {

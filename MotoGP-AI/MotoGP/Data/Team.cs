@@ -1,4 +1,4 @@
-﻿namespace MotoGP.Interfaces;
+﻿namespace MotoGP.Data;
 
 public class Team
 {

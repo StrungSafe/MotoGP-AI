@@ -2,9 +2,9 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MotoGP.Configuration;
-using MotoGP.Interfaces;
+using MotoGP.Repositories;
 
-namespace MotoGP
+namespace MotoGP.Data
 {
     public class DataLoader : IDataLoader
     {

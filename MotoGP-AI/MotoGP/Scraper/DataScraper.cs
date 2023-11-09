@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using MotoGP.Interfaces;
+using MotoGP.Data;
+using MotoGP.Utilities;
 
 namespace MotoGP.Scraper;
 

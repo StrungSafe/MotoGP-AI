@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using Microsoft.Extensions.Logging;
 
-namespace MotoGP;
+namespace MotoGP.Utilities;
 
 public class JsonDataService : IDataReader, IDataWriter
 {

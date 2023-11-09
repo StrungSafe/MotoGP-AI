@@ -1,8 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.ML;
+using MotoGP.Data;
 using MotoGP.Extensions;
-using MotoGP.Interfaces;
+using MotoGP.Utilities;
 
 namespace MotoGP.Trainer;
 

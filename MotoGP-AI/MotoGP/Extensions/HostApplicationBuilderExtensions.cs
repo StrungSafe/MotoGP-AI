@@ -1,6 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MotoGP.Configuration;
+using MotoGP.Data;
+using MotoGP.Repositories;
+using MotoGP.Utilities;
 
 namespace MotoGP.Extensions
 {
