@@ -1,8 +1,10 @@
 ﻿namespace MotoGP.Configuration;
 
-public class LocalRepositorySettings
+public class LocalCache
 {
     public Uri Directory { get; set; }
+
+    public bool Enabled { get; set; }
 
     public bool Overwrite { get; set; } = false;
 

@@ -1,5 +1,6 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using MotoGP.Configuration;
 using MotoGP.Data;
 using MotoGP.Utilities;
 
@@ -7,36 +8,29 @@ namespace MotoGP.Scraper;
 
 public class DataScraper : IDataScraper
 {
-    private readonly IConfiguration configuration;
-
     private readonly IDataLoader loader;
 
     private readonly ILogger<DataScraper> logger;
 
+    private readonly WorkingSpace settings;
+
     private readonly IDataWriter writer;
 
     public DataScraper(ILogger<DataScraper> logger, IDataLoader loader, IDataWriter writer,
-        IConfiguration configuration)
+        IOptions<WorkingSpace> settings)
     {
         this.logger = logger;
         this.loader = loader;
         this.writer = writer;
-        this.configuration = configuration;
+        this.settings = settings.Value;
     }
 
     public async Task Scrape(CancellationToken token)
     {
-        try
-        {
-            IEnumerable<Season> seasons = await loader.Load();
-            await Task.WhenAll(WriteSeasons(seasons, token),
-                WriteEvents(seasons, token),
-                WriteRiders(seasons, token));
-        }
-        catch (Exception ex)
-        {
-            logger.LogCritical(ex, "There was an unhandled exception...unable to continue, shutting down.");
-        }
+        IEnumerable<Season> seasons = await loader.Load(token);
+        await Task.WhenAll(WriteSeasons(seasons, token),
+            WriteEvents(seasons, token),
+            WriteRiders(seasons, token));
     }
 
     private async Task WriteEvents(IEnumerable<Season> seasons, CancellationToken token)
@@ -49,7 +43,8 @@ public class DataScraper : IDataScraper
                                                })
                                                .Select((value, index) => new { Index = index, Value = value })
                                                .ToDictionary(item => item.Index, item => item.Value);
-        await writer.Write(configuration["EventsPath"], events, token);
+        string path = Path.Join(settings.Objects.LocalPath, "events.json");
+        await writer.Write(path, events, token);
     }
 
     private async Task WriteRiders(IEnumerable<Season> seasons, CancellationToken token)
@@ -64,11 +59,13 @@ public class DataScraper : IDataScraper
                                                })
                                                .Select((value, index) => new { Index = index, Value = value })
                                                .ToDictionary(item => item.Index, item => item.Value);
-        await writer.Write(configuration["RidersPath"], riders, token);
+        string path = Path.Join(settings.Objects.LocalPath, "riders.json");
+        await writer.Write(path, riders, token);
     }
 
     private Task WriteSeasons(IEnumerable<Season> seasons, CancellationToken token)
     {
-        return writer.Write(configuration["FilePath"], seasons, token);
+        string path = Path.Join(settings.Objects.LocalPath, "seasons.json");
+        return writer.Write(path, seasons, token);
     }
 }

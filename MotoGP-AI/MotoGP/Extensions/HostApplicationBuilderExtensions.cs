@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using MotoGP.Analyzer;
 using MotoGP.Configuration;
 using MotoGP.Data;
@@ -20,8 +21,6 @@ namespace MotoGP.Extensions
 
         public static HostApplicationBuilder AddAnalyzer(this HostApplicationBuilder builder)
         {
-            builder.Services.Configure<AppSettings>(builder.Configuration.GetSection(nameof(AppSettings)));
-
             builder.Services.AddSingleton<IDataAnalyzer, DataAnalyzer>();
             return builder;
         }
@@ -31,16 +30,17 @@ namespace MotoGP.Extensions
             builder.AddUtilities()
                    .Services
                    .AddOptions()
-                   .Configure<RepositorySettings>(builder.Configuration.GetSection(nameof(RepositorySettings)))
+                   .Configure<AppSettings>(builder.Configuration.GetSection(nameof(AppSettings)))
+                   .Configure<Repository>(builder.Configuration.GetSection(nameof(Repository)))
+                   .Configure<WorkingSpace>(builder.Configuration.GetSection(nameof(WorkingSpace)))
                    .AddSingleton<IDataRepository, DataRepository>()
                    .AddSingleton<IDataLoader, DataLoader>()
                    .AddSingleton<ThrottlingDelegatingHandler>()
-                   .AddHttpClient(builder.Configuration["RepositorySettings:Name"],
-                       client =>
-                       {
-                           client.BaseAddress = new Uri(builder.Configuration["RepositorySettings:BaseAddress"],
-                               UriKind.Absolute);
-                       })
+                   .AddHttpClient<MotoGpClient>((provider, client) =>
+                   {
+                       var settings = provider.GetRequiredService<IOptions<Repository>>();
+                       client.BaseAddress = settings.Value.HttpClient.BaseAddress;
+                   })
                    .AddHttpMessageHandler<ThrottlingDelegatingHandler>();
 
             return builder;
@@ -54,16 +54,12 @@ namespace MotoGP.Extensions
 
         public static HostApplicationBuilder AddScraper(this HostApplicationBuilder builder)
         {
-            builder.Services.Configure<AppSettings>(builder.Configuration.GetSection(nameof(AppSettings)));
-
             builder.Services.AddSingleton<IDataScraper, DataScraper>();
             return builder;
         }
 
         public static HostApplicationBuilder AddTrainer(this HostApplicationBuilder builder)
         {
-            builder.Services.Configure<AppSettings>(builder.Configuration.GetSection(nameof(AppSettings)));
-
             builder.Services.AddSingleton<IDataTrainer, DataTrainer>()
                    .AddSingleton<IDataFormatter, SimpleDataFormatter>();
             return builder;

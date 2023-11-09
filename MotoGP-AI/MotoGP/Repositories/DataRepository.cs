@@ -9,21 +9,21 @@ namespace MotoGP.Repositories;
 
 public class DataRepository : IDataRepository
 {
-    private readonly IHttpClientFactory clientFactory;
+    private readonly MotoGpClient client;
 
     private readonly ILogger<DataRepository> logger;
 
     private readonly IDataReader reader;
 
-    private readonly RepositorySettings settings;
+    private readonly Repository settings;
 
     private readonly IDataWriter writer;
 
-    public DataRepository(ILogger<DataRepository> logger, IHttpClientFactory clientFactory,
-        IOptions<RepositorySettings> settings, IDataWriter writer, IDataReader reader)
+    public DataRepository(ILogger<DataRepository> logger, MotoGpClient client,
+        IOptions<Repository> settings, IDataWriter writer, IDataReader reader)
     {
         this.logger = logger;
-        this.clientFactory = clientFactory;
+        this.client = client;
         this.settings = settings.Value;
         this.writer = writer;
         this.reader = reader;
@@ -63,11 +63,8 @@ public class DataRepository : IDataRepository
 
     private async Task<T> FromApi<T>(string relativeUrl, string relativeUri, CancellationToken token)
     {
-        using IDisposable? scope =
-            logger.BeginScope("API Url: {relativeUrl} URI: {relativeUri}", relativeUrl, relativeUri);
         try
         {
-            using HttpClient client = clientFactory.CreateClient(settings.Name);
             var data = await client.GetFromJsonAsync<T>(new Uri(relativeUrl, UriKind.Relative), token);
             await writer.Write(relativeUri, data, token);
             return data;
@@ -81,11 +78,15 @@ public class DataRepository : IDataRepository
 
     private async Task<T> GetFromJson<T>(string relativeUrl, string relativeUri, CancellationToken cancellationToken)
     {
-        string path = Path.Join(settings.LocalRepositorySettings.Directory.ToString(), relativeUri);
-        bool overwrite = settings.LocalRepositorySettings.Overwrite;
-        bool overwriteOnError = settings.LocalRepositorySettings.OverwriteOnError;
+        using IDisposable? scope =
+            logger.BeginScope("API Url: {relativeUrl} URI: {relativeUri}", relativeUrl, relativeUri);
 
-        if (!File.Exists(path) || overwrite)
+        bool cacheEnabled = settings.LocalCache.Enabled;
+        bool overwriteCache = settings.LocalCache.Overwrite;
+        bool overwriteCacheOnError = settings.LocalCache.OverwriteOnError;
+        string path = Path.Join(settings.LocalCache.Directory.LocalPath, relativeUri);
+
+        if (!File.Exists(path) || overwriteCache || !cacheEnabled)
         {
             return await FromApi<T>(relativeUrl, path, cancellationToken);
         }
@@ -100,7 +101,7 @@ public class DataRepository : IDataRepository
         }
         catch (Exception ex)
         {
-            if (overwriteOnError)
+            if (overwriteCacheOnError)
             {
                 logger.LogWarning(ex,
                     "Exception caught while trying to read a local data file...attempting to refresh from the API");
