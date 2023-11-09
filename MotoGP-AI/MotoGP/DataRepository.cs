@@ -27,55 +27,65 @@ public class DataRepository : IDataRepository
         this.reader = reader;
     }
 
-    public Task<Category[]> GetCategories(Guid seasonId, Guid eventId)
+    public Task<Category[]> GetCategories(Guid seasonId, Guid eventId, CancellationToken token)
     {
         return GetFromJson<Category[]>($"categories?eventUuid={eventId}",
-            $"seasons/{seasonId}/{eventId}/categories.json");
+            $"seasons/{seasonId}/{eventId}/categories.json", token);
     }
 
-    public Task<Event[]> GetEvents(Guid seasonId, bool isFinished)
+    public Task<Event[]> GetEvents(Guid seasonId, bool isFinished, CancellationToken token)
     {
         return GetFromJson<Event[]>($"events?seasonUuid={seasonId}&isFinished={isFinished}",
-            $"seasons/{seasonId}/events_{isFinished}.json");
+            $"seasons/{seasonId}/events_{isFinished}.json", token);
     }
 
-    public Task<Season[]> GetSeasons()
+    public Task<Season[]> GetSeasons(CancellationToken token)
     {
-        return GetFromJson<Season[]>("seasons", "seasons/seasons.json");
+        return GetFromJson<Season[]>("seasons", "seasons/seasons.json", token);
     }
 
     public Task<SessionClassification> GetSessionClassification(Guid seasonId, Guid eventId, Guid categoryId,
-        Guid sessionId, bool test)
+        Guid sessionId, bool test, CancellationToken token)
     {
         return GetFromJson<SessionClassification>(
             $"session/{sessionId}/classification?test={test}",
-            $"seasons/{seasonId}/{eventId}/{categoryId}/{sessionId}/classifications_{test}.json");
+            $"seasons/{seasonId}/{eventId}/{categoryId}/{sessionId}/classifications_{test}.json", token);
     }
 
-    public Task<Session[]> GetSessions(Guid seasonId, Guid eventId, Guid categoryId)
+    public Task<Session[]> GetSessions(Guid seasonId, Guid eventId, Guid categoryId, CancellationToken token)
     {
         return GetFromJson<Session[]>(
             $"sessions?eventUuid={eventId}&categoryUuid={categoryId}",
-            $"seasons/{seasonId}/{eventId}/{categoryId}/sessions.json");
+            $"seasons/{seasonId}/{eventId}/{categoryId}/sessions.json", token);
     }
 
-    private async Task<T> GetFromJson<T>(string relativeUrl, string relativeUri)
+    private async Task<T> FromApi<T>(string relativeUrl, string relativeUri, CancellationToken token)
+    {
+        using IDisposable? scope =
+            logger.BeginScope("API Url: {relativeUrl} URI: {relativeUri}", relativeUrl, relativeUri);
+        try
+        {
+            using HttpClient client = clientFactory.CreateClient(configuration["MotoGP:Name"]);
+            var data = await client.GetFromJsonAsync<T>(new Uri(relativeUrl, UriKind.Relative), token);
+            await writer.Write(relativeUri, data, token);
+            return data;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error thrown trying to get data from API");//TODO
+            throw;
+        }
+    }
+
+    private async Task<T> GetFromJson<T>(string relativeUrl, string relativeUri, CancellationToken cancellationToken)
     {
         string path = Path.Join(configuration["DataRepository:RepoDirectory"], relativeUri);
         bool overwrite = configuration.GetValue<bool?>("DataRepository:Overwrite") ?? false;
         bool overwriteOnError = configuration.GetValue<bool?>("DataRepository:OverwriteOnError") ?? true;
 
-        async Task<T> FromApi()
-        {
-            using HttpClient client = clientFactory.CreateClient(configuration["MotoGP:Name"]);
-            var data = await client.GetFromJsonAsync<T>(new Uri(relativeUrl, UriKind.Relative));
-            await writer.Write(path, data);
-            return data;
-        }
-
         if (!File.Exists(path) || overwrite)
         {
-            return await FromApi();
+            return await FromApi<T>(relativeUrl, path, cancellationToken);
         }
 
         try
@@ -84,7 +94,7 @@ public class DataRepository : IDataRepository
                 "Retrieving data from local source instead of API. Url: {relativeUrl} Uri: {relativeUri}",
                 relativeUrl, relativeUri);
 
-            return await reader.Read<T>(path);
+            return await reader.Read<T>(path, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -92,7 +102,7 @@ public class DataRepository : IDataRepository
             {
                 logger.LogWarning(ex,
                     "Exception caught while trying to read a local data file...attempting to refresh from the API");
-                return await FromApi();
+                return await FromApi<T>(relativeUrl, path, cancellationToken);
             }
 
             throw;

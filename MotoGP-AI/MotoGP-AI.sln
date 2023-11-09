@@ -9,9 +9,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MotoGP.Trainer", "MotoGP.Tr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MotoGP.Analyzer", "MotoGP.Analyzer\MotoGP.Analyzer.csproj", "{068C4BA7-2A86-4182-B897-D11F014AA05B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MotoGP.Predictor", "MotoGP.Predictor\MotoGP.Predictor.csproj", "{58381A46-2C23-4ABB-9B2E-B67FBC93600A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MotoGP.Predictor", "MotoGP.Predictor\MotoGP.Predictor.csproj", "{58381A46-2C23-4ABB-9B2E-B67FBC93600A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MotoGP", "MotoGP\MotoGP.csproj", "{0E000B30-F04C-40AB-B0FA-6DD00197B083}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MotoGP", "MotoGP\MotoGP.csproj", "{0E000B30-F04C-40AB-B0FA-6DD00197B083}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MotoGP.Console", "MotoGP.Console\MotoGP.Console.csproj", "{7BA04055-7487-45A6-84B6-25F869F43C3B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{0E000B30-F04C-40AB-B0FA-6DD00197B083}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0E000B30-F04C-40AB-B0FA-6DD00197B083}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0E000B30-F04C-40AB-B0FA-6DD00197B083}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7BA04055-7487-45A6-84B6-25F869F43C3B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7BA04055-7487-45A6-84B6-25F869F43C3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7BA04055-7487-45A6-84B6-25F869F43C3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7BA04055-7487-45A6-84B6-25F869F43C3B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

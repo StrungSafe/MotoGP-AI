@@ -4,6 +4,6 @@ namespace MotoGP
 {
     public interface IDataLoader
     {
-        Task<IEnumerable<Season>> Load();
+        Task<IEnumerable<Season>> Load(CancellationToken token = default);
     }
 }
